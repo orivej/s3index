@@ -11,13 +11,16 @@ import com.amazonaws.services.s3.AmazonS3Client
 
 object S3IndexBuilder {
 
-  abstract class Tree(name : String) {}
+  abstract class Tree(name : String) {
+  }
 
   class Leaf(name : String, value : S3ObjectSummary) extends Tree(name) {
+      override def toString = name
   }
 
   class Branch(name : String) extends Tree(name) {
     var children = new MutableList[Tree]()
+    override def toString = name+"("+children+")"
   }
 
   def main(args : Array[String]) : Unit = {
@@ -28,6 +31,7 @@ object S3IndexBuilder {
       val s3 = new AmazonS3Client(new PropertiesCredentials(pstr));
       val objects = s3.listObjects(bucket).getObjectSummaries().iterator().asScala.buffered
       val root = buildTree(objects, "", 0)
+      println(root)
     } finally {
       pstr.close();
     }
