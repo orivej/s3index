@@ -11,16 +11,17 @@ import com.amazonaws.services.s3.AmazonS3Client
 
 object S3IndexBuilder {
 
-  abstract class Tree(name : String) {
+  abstract class Tree(_name : String) {
+    var name = _name
   }
 
   class Leaf(name : String, value : S3ObjectSummary) extends Tree(name) {
-      override def toString = name
+    override def toString = name
   }
 
   class Branch(name : String) extends Tree(name) {
     var children = new MutableList[Tree]()
-    override def toString = name+"("+children+")"
+    override def toString = name + "(" + children + ")"
   }
 
   def main(args : Array[String]) : Unit = {
@@ -31,13 +32,25 @@ object S3IndexBuilder {
       val s3 = new AmazonS3Client(new PropertiesCredentials(pstr));
       val objects = s3.listObjects(bucket).getObjectSummaries().iterator().asScala.buffered
       val root = buildTree(objects, "", 0)
-      println(root)
+      generateIndex(s3, root, "")
     } finally {
       pstr.close();
     }
   }
 
-  def buildTree(i : BufferedIterator[S3ObjectSummary], name : String, level : Int) : Tree = {
+  def generateIndex(s3 : AmazonS3Client, root : Branch, path : String) : Unit = {
+    val indexName = path + "/index.html"
+    println("Generating " + indexName)
+    for (i <- root.children) {
+      if(i.isInstanceOf[Branch])
+      {
+        val b = i.asInstanceOf[Branch];
+        generateIndex(s3, b, path+"/"+b.name)
+      }
+    }
+  }
+
+  def buildTree(i : BufferedIterator[S3ObjectSummary], name : String, level : Int) : Branch = {
 
     val me = new Branch(name)
     while (i.hasNext) {
