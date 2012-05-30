@@ -4,7 +4,7 @@
 
 	<groupId>s3index</groupId>
 	<artifactId>s3index</artifactId>
-	<version>${currentVersion}</version>
+	<version>1.0</version>
 	<name>S3 Indexer</name>
 
 	<description>S3 Indexer Utility</description>
@@ -33,11 +33,6 @@
 	</pluginRepositories>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>${scala.version}</version>
-		</dependency>
         <dependency>
 	      <groupId>com.amazonaws</groupId>
 	      <artifactId>aws-java-sdk</artifactId>
@@ -121,7 +116,7 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<finalName>${artifactId}-full</finalName>
+					<finalName>s3index-full</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 				<executions>
