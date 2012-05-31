@@ -22,6 +22,6 @@
 		</table>
 		<br>
 		<hr>
-		Generated with s3index by <a href="http://www.codeminders.com/">Codeminders</a>   
+		Generated with <a href="http://code.google.com/p/s3index/">s3index</a> by <a href="http://www.codeminders.com/">Codeminders</a>   
 	</body>
 </html>
