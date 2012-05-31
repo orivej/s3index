@@ -1,22 +1,28 @@
 package com.codeminders.s3index
 
 import java.io.FileInputStream
-
 import scala.collection.JavaConverters.asScalaIteratorConverter
 import scala.collection.mutable.MutableList
-
 import com.amazonaws.auth.PropertiesCredentials
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.amazonaws.services.s3.AmazonS3Client
+import org.clapper.scalasti.StringTemplateGroup
+import java.io.File
 
 object S3IndexBuilder {
 
   abstract class Tree(_name : String) {
-    var name = _name
+    val name = _name
   }
 
-  class Leaf(name : String, value : S3ObjectSummary) extends Tree(name) {
+  class Leaf(name : String, _value : S3ObjectSummary) extends Tree(name) {
+
+    val value = _value
     override def toString = name
+
+    def getName() = name
+    def getSize() = value.getSize()
+    def getDate() = value.getLastModified()
   }
 
   class Branch(name : String) extends Tree(name) {
@@ -41,9 +47,27 @@ object S3IndexBuilder {
   def generateIndex(s3 : AmazonS3Client, root : Branch, path : String) : Unit = {
     val indexName = path + "/index.html"
     println("Generating " + indexName)
+
+    val group = new StringTemplateGroup("mygroup", new File("etc"))
+    val template = group.template("index")
+
+    template.setAttributes(Map("title" -> path))
+
     for (i <- root.children) {
-      if(i.isInstanceOf[Branch])
-      {
+      if (i.isInstanceOf[Branch]) {
+        val b = i.asInstanceOf[Branch];
+        template.setAggregate("children.{leaf,name,date,size}", false, b.name, null, 0L)
+      } else {
+        val l = i.asInstanceOf[Leaf];
+        template.setAggregate("children.{leaf,name,date,size}", true, l.name, l.getDate(), l.getSize())
+      }
+    }
+
+    val indexData = template.toString
+    println(indexData)
+
+    for (i <- root.children) {
+      if (i.isInstanceOf[Branch]) {
         val b = i.asInstanceOf[Branch];
         generateIndex(s3, b, path+"/"+b.name)
       }
