@@ -56,7 +56,7 @@ object S3IndexBuilder {
     for (i <- root.children) {
       if (i.isInstanceOf[Branch]) {
         val b = i.asInstanceOf[Branch];
-        template.setAggregate("children.{leaf,name,date,size}", false, b.name, null, 0L)
+        template.setAggregate("children.{leaf,name}", false, b.name)
       } else {
         val l = i.asInstanceOf[Leaf];
         template.setAggregate("children.{leaf,name,date,size}", true, l.name, l.getDate(), l.getSize())
