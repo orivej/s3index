@@ -6,11 +6,17 @@ import scala.collection.mutable.MutableList
 import com.amazonaws.auth.PropertiesCredentials
 import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.amazonaws.services.s3.AmazonS3Client
+import com.amazonaws.services.s3.model.ObjectMetadata
 import org.clapper.scalasti.StringTemplateGroup
 import java.io.File
+import java.io.InputStreamReader
+import java.io.ByteArrayInputStream
+import com.amazonaws.services.s3.model.CannedAccessControlList
 
 object S3IndexBuilder {
 
+  val INDEXFILE = "index.html"
+  
   abstract class Tree(_name : String) {
     val name = _name
   }
@@ -20,7 +26,6 @@ object S3IndexBuilder {
     val value = _value
     override def toString = name
 
-    def getName() = name
     def getSize() = value.getSize()
     def getDate() = value.getLastModified()
   }
@@ -32,20 +37,29 @@ object S3IndexBuilder {
 
   def main(args : Array[String]) : Unit = {
     val bucket = args(0)
-    println("Listing " + bucket);
     val pstr = new FileInputStream("etc/AwsCredentials.properties");
     try {
+      println("Connecting to S3 ");
       val s3 = new AmazonS3Client(new PropertiesCredentials(pstr));
+      
+      println("Reeading " + bucket)
       val objects = s3.listObjects(bucket).getObjectSummaries().iterator().asScala.buffered
+
+      println("Building tree")
       val root = buildTree(objects, "", 0)
-      generateIndex(s3, root, "")
+
+      println("Generating index files")
+      generateIndex(s3, bucket, root, "")
     } finally {
       pstr.close();
     }
+    println("Done")
   }
 
-  def generateIndex(s3 : AmazonS3Client, root : Branch, path : String) : Unit = {
-    val indexName = path + "/index.html"
+  def generateIndex(s3 : AmazonS3Client, bucket :String, root : Branch, path : String) : Unit = {
+    val pprefix = if(path.length==0) "" else "/"
+    val indexName = path + pprefix + INDEXFILE
+        
     println("Generating " + indexName)
 
     val group = new StringTemplateGroup("mygroup", new File("etc"))
@@ -64,14 +78,25 @@ object S3IndexBuilder {
     }
 
     val indexData = template.toString
-    println(indexData)
+    //println(indexData)
+    val bytes = indexData.getBytes("UTF-8")    
+    val bais = new ByteArrayInputStream(bytes)
 
+    val md  = new ObjectMetadata()
+    md.setContentType("text/html; charset=UTF-8")
+    md.setContentLength(bytes.length)
+
+    s3.putObject(bucket, indexName, bais, md)
+    bais.close()
+    s3.setObjectAcl(bucket, indexName, CannedAccessControlList.PublicRead)
+    
     for (i <- root.children) {
       if (i.isInstanceOf[Branch]) {
         val b = i.asInstanceOf[Branch];
-        generateIndex(s3, b, path+"/"+b.name)
+        generateIndex(s3, bucket, b, path+pprefix+b.name)
       }
     }
+    
   }
 
   def buildTree(i : BufferedIterator[S3ObjectSummary], name : String, level : Int) : Branch = {
@@ -88,7 +113,9 @@ object S3IndexBuilder {
 
       if (sname.length == (level + 1)) {
         // new leaf
-        me.children += new Leaf(sname(level), i.next())
+        val o = i.next()
+        if(sname(level)!=INDEXFILE)
+            me.children += new Leaf(sname(level), o)
       } else {
         // new branch
         me.children += buildTree(i, sname(level), level + 1)
