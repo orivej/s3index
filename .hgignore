@@ -9,3 +9,5 @@ syntax: regexp
 ^\.externalToolBuilders$
 syntax: regexp
 ^\.cache$
+syntax: regexp
+project/target
