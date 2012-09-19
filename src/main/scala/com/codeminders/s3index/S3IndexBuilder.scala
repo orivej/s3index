@@ -17,13 +17,11 @@ object S3IndexBuilder {
 
   val INDEXFILE = "index.html"
   
-  abstract class Tree(_name : String) {
-    val name = _name
+  abstract class Tree(val name : String) {
   }
 
-  class Leaf(name : String, _value : S3ObjectSummary) extends Tree(name) {
+  class Leaf(name : String, val value : S3ObjectSummary) extends Tree(name) {
 
-    val value = _value
     override def toString = name
 
     def getSize() = value.getSize()

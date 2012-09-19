@@ -1,4 +1,6 @@
-
+syntax: glob
+.project
+.classpath
 syntax: regexp
 ^target$
 syntax: regexp
