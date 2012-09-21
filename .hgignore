@@ -1,6 +1,7 @@
 syntax: glob
 .project
 .classpath
+.worksheet
 syntax: regexp
 ^target$
 syntax: regexp

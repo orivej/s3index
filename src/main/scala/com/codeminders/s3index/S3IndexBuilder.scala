@@ -12,27 +12,13 @@ import java.io.File
 import java.io.InputStreamReader
 import java.io.ByteArrayInputStream
 import com.amazonaws.services.s3.model.CannedAccessControlList
+import com.codeminders.s3simpleclient._
+import com.codeminders.s3simpleclient.model.KeysTree
 
 object S3IndexBuilder {
 
   val INDEXFILE = "index.html"
   
-  abstract class Tree(val name : String) {
-  }
-
-  class Leaf(name : String, val value : S3ObjectSummary) extends Tree(name) {
-
-    override def toString = name
-
-    def getSize() = value.getSize()
-    def getDate() = value.getLastModified()
-  }
-
-  class Branch(name : String) extends Tree(name) {
-    var children = new MutableList[Tree]()
-    override def toString = name + "(" + children + ")"
-  }
-
   def main(args : Array[String]) : Unit = {
     val bucket = args(0)
     val pstr = new FileInputStream("etc/AwsCredentials.properties");
@@ -40,46 +26,35 @@ object S3IndexBuilder {
       println("Connecting to S3 ");
       val s3 = new AmazonS3Client(new PropertiesCredentials(pstr));
       
-      println("Reeading " + bucket)
-      val objects = s3.listObjects(bucket).getObjectSummaries().iterator().asScala.buffered
-
-      println("Building tree")
-      val root = buildTree(objects, "", 0)
-
       println("Generating index files")
-      generateIndex(s3, bucket, root, "")
+      generateIndex(s3, bucket, (new SimpleS3() with NoAuthS3Client).bucket(bucket).list())
     } finally {
       pstr.close();
     }
     println("Done")
   }
+  
+  def generateIndex(s3 : AmazonS3Client, bucket: String, root: KeysTree): Unit = {
+    val indexName = root.name + INDEXFILE
 
-  def generateIndex(s3 : AmazonS3Client, bucket :String, root : Branch, path : String) : Unit = {
-    val pprefix = if(path.length==0) "" else "/"
-    val indexName = path + pprefix + INDEXFILE
-        
     println("Generating " + indexName)
 
     val group = new StringTemplateGroup("mygroup", new File("etc"))
     val template = group.template("index")
 
-    template.setAttributes(Map("title" -> path))
+    template.setAttributes(Map("title" -> root.name))
 
-    for (i <- root.children) {
-      if (i.isInstanceOf[Branch]) {
-        val b = i.asInstanceOf[Branch];
-        template.setAggregate("children.{leaf,name}", false, b.name)
-      } else {
-        val l = i.asInstanceOf[Leaf];
-        template.setAggregate("children.{leaf,name,date,size}", true, l.name, l.getDate(), l.getSize())
-      }
+    for (g <- root.keyGroups) {
+      template.setAggregate("children.{leaf,name}", false, g.name.substring(root.name.size))
+    }
+    for (k <- root.keys if(indexName != k.name)) {
+    	  template.setAggregate("children.{leaf,name,date,size}", true, k.name.substring(root.name.size), k.metadata.lastModified, k.metadata.objectSize)
     }
 
     val indexData = template.toString
-    //println(indexData)
-    val bytes = indexData.getBytes("UTF-8")    
+    val bytes = indexData.getBytes("UTF-8")
     val bais = new ByteArrayInputStream(bytes)
-
+    
     val md  = new ObjectMetadata()
     md.setContentType("text/html; charset=UTF-8")
     md.setContentLength(bytes.length)
@@ -87,39 +62,11 @@ object S3IndexBuilder {
     s3.putObject(bucket, indexName, bais, md)
     bais.close()
     s3.setObjectAcl(bucket, indexName, CannedAccessControlList.PublicRead)
-    
-    for (i <- root.children) {
-      if (i.isInstanceOf[Branch]) {
-        val b = i.asInstanceOf[Branch];
-        generateIndex(s3, bucket, b, path+pprefix+b.name)
-      }
+
+    for (g <- root.keyGroups) {
+      generateIndex(s3, bucket, g)
     }
-    
-  }
 
-  def buildTree(i : BufferedIterator[S3ObjectSummary], name : String, level : Int) : Branch = {
-
-    val me = new Branch(name)
-    while (i.hasNext) {
-      val o = i.head
-      val sname = o.getKey().split("/")
-
-      if ((sname.length <= level) || (level != 0 && sname(level - 1) != name)) {
-        // end of this branch        
-        return me
-      }
-
-      if (sname.length == (level + 1)) {
-        // new leaf
-        val o = i.next()
-        if(sname(level)!=INDEXFILE)
-            me.children += new Leaf(sname(level), o)
-      } else {
-        // new branch
-        me.children += buildTree(i, sname(level), level + 1)
-      }
-    }
-    return me
   }
 
 }
