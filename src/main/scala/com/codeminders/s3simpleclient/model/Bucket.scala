@@ -20,6 +20,7 @@ class KeysTree(val client: BasicS3Client, val name: String, val bucketName: Stri
   
   val (keys, commonPrefexes) = client.getBucket(bucketName, prefix, delimiter)
   
+  //TODO: Memoized
   def keyGroups = commonPrefexes map { 
     (e => new KeysTree(client, e, bucketName, e, delimiter)) 
   }

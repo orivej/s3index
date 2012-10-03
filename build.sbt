@@ -12,5 +12,6 @@ libraryDependencies := Seq(
 	"net.databinder" % "dispatch-http_2.8.0" % "0.8.8",
 	"org.scalatest" % "scalatest" % "1.4.RC2",
 	"junit" % "junit" % "4.10",
-	"commons-io" % "commons-io" % "2.4"
+	"commons-io" % "commons-io" % "2.4",
+	"commons-codec" % "commons-codec" % "1.7"
 	)
