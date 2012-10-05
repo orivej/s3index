@@ -4,7 +4,8 @@ import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
 
-class AWSCredentials(val accessKeyId: String, val secretKey: String)
+class AWSCredentials(val accessKeyId: String, val secretKey: String){
+}
 
 object AWSCredentials {
   def apply(accessKeyId: String, secretKey: String): AWSCredentials = {

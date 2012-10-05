@@ -11,6 +11,7 @@ class ObjectMetadata {
   var etag: String = ""
   var lastModified:String = ""
   var userMetadata: scala.collection.mutable.Map[String, String] = scala.collection.mutable.HashMap()
+  var owner:Owner = new Owner("", "")
   
   def withContentType(contentType:String):ObjectMetadata = {
     this.contentType = contentType
@@ -42,13 +43,20 @@ class ObjectMetadata {
     this
   }
   
+  def withOwner(owner: Owner):ObjectMetadata = {
+    this.owner = owner
+    this
+  }
+  
   def toMap(): Map[String, String] = {
     HashMap("contentType" -> contentType, 
        "expires" -> expires.toString(),
        "storageClass" -> storageClass,
        "objectSize" -> objectSize.toString(),
        "etag" -> etag,
-       "lastModified" -> lastModified) ++ userMetadata
+       "lastModified" -> lastModified,
+       "ownerId" -> owner.id,
+       "ownerDisplayName" -> owner.displayName) ++ userMetadata
   }
   
   override def toString() = "contentType:%s, expires:%d, storageClass:%s, size:%d, etag:%s, lastModified:%s, userMetadata:[%s]".format( contentType
@@ -58,6 +66,6 @@ class ObjectMetadata {
 object ObjectMetadata {
   def apply() = new ObjectMetadata()
   
-  def apply(lastModified:String, etag: String, size: Long, storageClass: String = "STANDARD"):ObjectMetadata = 
-    new ObjectMetadata().withLastModified(lastModified).withEtag(etag).withSize(size).withStorageClass(storageClass)
+  def apply(lastModified:String, etag: String, size: Long, storageClass: String = "STANDARD", owner: Owner = new Owner("", "")):ObjectMetadata = 
+    new ObjectMetadata().withLastModified(lastModified).withEtag(etag).withSize(size).withStorageClass(storageClass).withOwner(owner)
 }

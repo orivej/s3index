@@ -13,7 +13,7 @@ import java.io.FileInputStream
 class S3SimpleClientTests extends FunSuite {
 
   test("List Bucket Operation") {
-    val client = new SimpleS3(AWSCredentials("dummy", "123")) with BasicS3ClientMock
+    val client = new SimpleS3() with BasicS3ClientMock
     val bucket = client.bucket("s3index")
     val tree = bucket.list()
     assert(1 === tree.keysNumber)
@@ -22,7 +22,7 @@ class S3SimpleClientTests extends FunSuite {
   }
   
   test("Put Object Operation and Get Object Operation") {
-    val client = new SimpleS3(AWSCredentials("dummy", "123")) with BasicS3ClientMock
+    val client = new SimpleS3() with BasicS3ClientMock
     val bucket = client.bucket("s3index")
     val key = bucket.key("1")
     key <<< new ByteArrayInputStream("Data of Object 1".getBytes("UTF-8"))
@@ -32,7 +32,8 @@ class S3SimpleClientTests extends FunSuite {
   }
   
   test("HMAC Authentication") {
-    val client = new SimpleS3(AWSCredentials(new FileInputStream("etc/AwsCredentials.properties"))) with HMACS3Client
+    val client = new SimpleS3() with HMACSingature 
+    client.authenticate(AWSCredentials(new FileInputStream("etc/AwsCredentials.properties")))
     val bucket = client.bucket("s3index")
     val key = bucket.key("s3index")
     val tree = bucket.list()

@@ -14,40 +14,47 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import org.apache.commons.codec.binary.Base64
 
-trait HMACS3Client extends BasicS3Client {
-
+trait HMACSingature extends BasicS3Client {
+  
   val dateUtils: DateUtils = new DateUtils()
+  
+  override protected def sendRequest(url: Request): scala.xml.Node = {
+    super.sendRequest(sign(url))
+  }
+  
+  def credentials: AWSCredentials
 
-  def sign(request: Request): Request = {
+  private def sign(request: Request): Request = {
     val date: String = dateUtils.formatRfc822Date(new Date());
     val r = request <:< Map(("Date", date)) <:< Map(("Host", request.host.toHostString())) <:< Map(("X-Amz-Date", date))
-    
+
     val md5Sum = r.headers.find((p) => if (p._1 == "Content-MD5") true else false) match {
       case None => ""
       case Some(x) => x._2
     }
-    
+
     val contentType = r.headers.find((p) => if (p._1 == "Content-Type") true else false) match {
       case None => ""
       case Some(x) => x._2
     }
-    
-    val stringToSign = r.method + "\n" + 
-      md5Sum + "\n" + 
+
+    val stringToSign = r.method + "\n" +
+      md5Sum + "\n" +
       contentType + "\n" +
       "\n" +
       canonicalizeHeaders(r.headers) + "\n" +
-      canonicalizeResourcePath("/s3index/")
+      canonicalizeResourcePath(r.path)
     val signature: String = signAndBase64Encode(stringToSign, credentials.secretKey)
-    
+
     r <:< Map(("Authorization", "AWS %s:%s".format(credentials.accessKeyId, signature)))
   }
 
-  private def canonicalizeResourcePath(resourcePath: String): String = {
+  private def canonicalizeResourcePath(resourcePath: String): String = {    
     if (resourcePath.isEmpty) {
       "/";
     } else {
-      urlEncode(resourcePath).replace("%2F", "/")
+      val parsedPath = parseRequestPath(resourcePath)
+      "/" + parsedPath.bucketName + urlEncode(parsedPath.keyName).replace("%2F", "/")
     }
   }
 
@@ -83,7 +90,7 @@ trait HMACS3Client extends BasicS3Client {
     }
   }
 
-  def canonicalizeHeaders(headers: List[(String, String)]): String = {
+  private def canonicalizeHeaders(headers: List[(String, String)]): String = {
     import scala.collection.mutable.Map
 
     val tmpList: Map[String, String] = headers.foldLeft(Map[String, String]()) {
@@ -98,19 +105,40 @@ trait HMACS3Client extends BasicS3Client {
     (tmpList.toSeq.sortBy(_._1) map { case (k, v) => k + ":" + v }).mkString("\n")
   }
 
-  private def parse(input: String): Map[String, String] = {
+  private def parseRequestPath(input: String): ParsedPath = {
 
-    val eq = """([^?|^&|^=]+)=([^?|^&|^=]+)""".r
+    val keyValuePair = """([^?|^&|^=]+)=([^?|^&|^=]+)""".r
+    
+    val keyOnly = """([^?|^&|^=]+)=""".r
 
-    val params = "[?]([^?]+)".r
+    val params = "([^?]*)[?]([^?]+)".r
 
-    def parse(input: Seq[String], c: Map[String, String] = Map()): Map[String, String] = input.foldLeft(c)((c, s) => s match {
-      case params(p) => parse(p.split("&"), c)
-      case eq(k, v) => c ++ Map(k -> v)
-      case e => c
+    val pathWithParameters = "[/]?([^/]+)(.*)[?]([^?]+)".r
+
+    val path = "[/]?([^/]+)([^?]*)?".r
+
+    def parse(s: String, bucket: String = "", key: String = ""): ParsedPath = s match {
+      case pathWithParameters(bucket, key, r) => new ParsedPath(bucket, key, parseParameters(r.split("&")))
+      case path(bucket, key) => new ParsedPath(bucket, key, Map())
+      case path(bucket) => new ParsedPath(bucket, "/", Map())
+      case e => throw new IllegalArgumentException("")
+    }
+
+    def parseParameters(input: Seq[String], c: Map[String, String] = Map()):Map[String, String] = input.foldLeft(c)((c, s) => s match {
+      case params(r, p) => parseParameters(p.split("&"), c)
+      case keyValuePair(k, v) => c + (k -> v)
+      case keyOnly(k) => c + (k -> "")
+      case e => throw new IllegalArgumentException("")
     })
 
-    parse(Array(input))
+    parse(input)
+  }
+
+  private class ParsedPath(val bucketName: String, val keyName: String, val parameters: Map[String, String]) {
+    override def toString(): String = {
+      val parametersString = if (!parameters.isEmpty) "?" + parameters.foldLeft(Array[String]())((a, e) => a ++ Array(("" + e._1 + "=" + e._2))).mkString("&") else ""
+      "/" + bucketName + keyName + parametersString
+    }
   }
 
   private def urlEncode(str: String): String = {
@@ -123,17 +151,5 @@ trait HMACS3Client extends BasicS3Client {
     val sorted: SortedMap[String, String] = TreeMap(parameters.toSeq: _*)
     sorted map { case (k, v) => "" + urlEncode(k) + "=" + urlEncode(v) } mkString ("&")
   }
-
-  def getBucket(bucketName: String, prefix: String = "", delimiter: String = "/", maxKeys: Int = 1000, marker: String = ""): (Array[Key], Array[String]) = {
-
-    val req = sign(url("http://%s.s3.amazonaws.com/?prefix=%s&delimiter=%s&max-keys=%d&marker=%s".format(bucketName, prefix, delimiter, maxKeys, marker)))
-    val xml = XML.loadString(Http(req >- { str =>
-      str
-    }))
-
-    (Array(), Array())
-  }
-  def putObject(objectName: String, metadata: ObjectMetadata, data: InputStream) = ???
-  def getObject(objectName: String): (InputStream, ObjectMetadata) = ???
 
 }

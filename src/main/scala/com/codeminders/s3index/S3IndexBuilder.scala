@@ -27,7 +27,7 @@ object S3IndexBuilder {
       val s3 = new AmazonS3Client(new PropertiesCredentials(pstr));
       
       println("Generating index files")
-      generateIndex(s3, bucket, (new SimpleS3(AWSCredentials(new FileInputStream("etc/AwsCredentials.properties"))) with NoAuthS3Client).bucket(bucket).list())
+      generateIndex(s3, bucket, (new SimpleS3()).bucket(bucket).list())
     } finally {
       pstr.close();
     }
