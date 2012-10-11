@@ -14,12 +14,12 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import org.apache.commons.codec.binary.Base64
 
-trait HMACSingature extends BasicS3Client {
+trait HMACSingature extends HTTPClient {
   
   val dateUtils: DateUtils = new DateUtils()
   
-  override protected def sendRequest(url: Request): scala.xml.Node = {
-    super.sendRequest(sign(url))
+  override def processRequest[T](url: Request, handler: (InputStream, String) => T): T = {
+    super.processRequest(sign(url), handler)
   }
   
   def credentials: AWSCredentials
@@ -28,12 +28,12 @@ trait HMACSingature extends BasicS3Client {
     val date: String = dateUtils.formatRfc822Date(new Date());
     val r = request <:< Map(("Date", date)) <:< Map(("Host", request.host.toHostString())) <:< Map(("X-Amz-Date", date))
 
-    val md5Sum = r.headers.find((p) => if (p._1 == "Content-MD5") true else false) match {
+    val md5Sum = r.headers.find((p) => p._1 == "Content-MD5") match {
       case None => ""
       case Some(x) => x._2
     }
 
-    val contentType = r.headers.find((p) => if (p._1 == "Content-Type") true else false) match {
+    val contentType = r.headers.find((p) => p._1 == "Content-Type") match {
       case None => ""
       case Some(x) => x._2
     }
