@@ -16,14 +16,23 @@ import org.apache.commons.codec.binary.Base64
 
 trait HMACSingature extends HTTPClient {
   
+  private var cred_ : AWSCredentials = null
+  
   val dateUtils: DateUtils = new DateUtils()
+  
+  def credentials: AWSCredentials = if(cred_ ==  null) throw new IllegalStateException("Please authenticate yourself before signing the request") else cred_
+  
+  def credentials_= (cred: AWSCredentials):Unit = cred_ = cred
   
   override def processRequest[T](url: Request, handler: (InputStream, String) => T): T = {
     super.processRequest(sign(url), handler)
   }
   
-  def credentials: AWSCredentials
-
+  def withCredentials(credentials: AWSCredentials):HMACSingature = {
+    cred_ = credentials
+    this
+  }
+  
   private def sign(request: Request): Request = {
     val date: String = dateUtils.formatRfc822Date(new Date());
     val r = request <:< Map(("Date", date)) <:< Map(("Host", request.host.toHostString())) <:< Map(("X-Amz-Date", date))

@@ -20,22 +20,13 @@ trait HTTPClient {
 
 class SimpleS3() extends HTTPClient{
   
-  private var cred_ : AWSCredentials = null
-  
-  private def withCredentials(credentials: AWSCredentials):SimpleS3 = {
-    cred_ = credentials
-    this
-  }
-  
-  def credentials: AWSCredentials = if(cred_ ==  null) throw new IllegalStateException("Please authenticate yourself before signing the request") else cred_
-  
   def bucket(name: String): Bucket = new Bucket(this, name)
   
 }
 
 object SimpleS3 {
-  def apply(credentials: AWSCredentials): SimpleS3 = {
-    (new SimpleS3() with HMACSingature).withCredentials(credentials)
+  def apply(cred: AWSCredentials): SimpleS3 = {
+    (new SimpleS3() with HMACSingature{this.credentials = cred})
   }
   
   def apply() = {
