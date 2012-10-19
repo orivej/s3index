@@ -6,7 +6,6 @@ import scala.collection.mutable.Map
 import org.apache.commons.io.IOUtils
 import java.io.ByteArrayInputStream
 import com.codeminders.s3simpleclient.model.Key
-import com.codeminders.s3simpleclient.model.ObjectMetadata
 import dispatch.Request
 
 trait HTTPClientMock extends HTTPClient {

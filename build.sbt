@@ -7,7 +7,6 @@ organization := "com.codeminders"
 scalaVersion := "2.9.1"
 
 libraryDependencies := Seq(
-	"com.amazonaws" % "aws-java-sdk" % "1.3.14",
 	"org.clapper" % "scalasti_2.9.1" % "0.5.8",
 	"net.databinder" % "dispatch-http_2.8.0" % "0.8.8",
 	"org.scalatest" % "scalatest" % "1.4.RC2",

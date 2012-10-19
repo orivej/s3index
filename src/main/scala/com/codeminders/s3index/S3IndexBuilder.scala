@@ -7,7 +7,6 @@ import org.clapper.scalasti.StringTemplateGroup
 import java.io.File
 import java.io.InputStreamReader
 import java.io.ByteArrayInputStream
-import com.amazonaws.services.s3.model.CannedAccessControlList
 import com.codeminders.s3simpleclient._
 import com.codeminders.s3simpleclient.model.KeysTree
 
