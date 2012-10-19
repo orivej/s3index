@@ -36,6 +36,7 @@ class S3SimpleClientTests extends FunSuite {
     val client = SimpleS3(AWSCredentials(new FileInputStream("etc/AwsCredentials.properties")))
     val bucket = client.bucket("s3index")
     val key = bucket.key("1")
+    key.acl = "public-read"
     val data = "Data of Object 1"
     key <<< (new ByteArrayInputStream(data.getBytes("UTF-8")), data.length())
     val out = new ByteArrayOutputStream()

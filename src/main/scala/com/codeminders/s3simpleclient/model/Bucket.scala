@@ -15,8 +15,8 @@ class Bucket(val client: HTTPClient, val name: String) {
   
   def listAll() : KeysTree = list(delimiter = "")
   
-  def key(name: String, metadata: ObjectMetadata = ObjectMetadata()): Key = {
-    new Key(client, this, name, metadata)
+  def key(name: String): Key = {
+    new Key(client, this, name)
   }
   
   def getBucket(prefix: String = "", delimiter: String = "/", maxKeys: Int = 1000, marker: String = ""): (Array[Key], Array[String]) = {
@@ -24,9 +24,9 @@ class Bucket(val client: HTTPClient, val name: String) {
     def extractKey(node: scala.xml.Node): Key =
       node match {
         case <Contents><Key>{ name }</Key><LastModified>{ lastModified }</LastModified><ETag>{ etag }</ETag><Size>{ size }</Size><StorageClass>{ storageClass }</StorageClass></Contents> => 
-          new Key(client, this, name.text, ObjectMetadata(lastModified.text, etag.text, size.text.toInt, storageClass.text))
+          Key(client, this, name.text, lastModified.text, etag.text, size.text.toInt, storageClass.text)
         case <Contents><Key>{ name }</Key><LastModified>{ lastModified }</LastModified><ETag>{ etag }</ETag><Size>{ size }</Size><Owner><ID>{ ownerId }</ID><DisplayName>{ ownerDisplayName }</DisplayName></Owner><StorageClass>{ storageClass }</StorageClass></Contents> => 
-          new Key(client, this, name.text, ObjectMetadata(lastModified.text, etag.text, size.text.toInt, storageClass.text, new Owner(ownerId.text, ownerDisplayName.text)))
+          Key(client, this, name.text, lastModified.text, etag.text, size.text.toInt, storageClass.text, new Owner(ownerId.text, ownerDisplayName.text))
       }
     
     val xml = client.processRequest(url("http://s3.amazonaws.com/%s/?prefix=%s&delimiter=%s&max-keys=%d&marker=%s".format(name, prefix, delimiter, maxKeys, marker)), (is:InputStream, charset:String) => XML.load(is))
