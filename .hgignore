@@ -2,15 +2,17 @@ syntax: glob
 .project
 .classpath
 .worksheet
+web/logs/*
+web/project/project/*
+web/target/*
+web/tmp/*
+web/.history
+web/dist/*
+
 syntax: regexp
 ^target$
-syntax: regexp
 ^etc/AwsCredentials\.properties$
-syntax: regexp
 ^\.settings$
-syntax: regexp
 ^\.externalToolBuilders$
-syntax: regexp
 ^\.cache$
-syntax: regexp
 project/target

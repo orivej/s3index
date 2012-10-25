@@ -1,4 +1,4 @@
-name := "s3index"
+name := "s3simpleclient"
 
 version := "1.0"
 
