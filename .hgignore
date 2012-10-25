@@ -8,11 +8,12 @@ web/target/*
 web/tmp/*
 web/.history
 web/dist/*
+target/*
+*.log
 
 syntax: regexp
-^target$
-^etc/AwsCredentials\.properties$
-^\.settings$
-^\.externalToolBuilders$
-^\.cache$
+etc/AwsCredentials\.properties$
+\.settings$
+\.externalToolBuilders$
+\.cache$
 project/target
