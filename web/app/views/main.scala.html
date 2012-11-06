@@ -1,15 +1,115 @@
-@(title: String)(content: Html)
+@(title: String)
 
 <!DOCTYPE html>
 
 <html>
-    <head>
-        <title>@title</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
-        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
-        <script src="@routes.Assets.at("javascripts/jquery-1.7.1.min.js")" type="text/javascript"></script>
-    </head>
-    <body>
-        @content
-    </body>
+<head>
+<title>@title</title>
+<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
+<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/s3index.css")">
+<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+</head>
+<body>
+
+	<div class="navbar">
+		<div class="navbar-inner">
+			<div class="container-fluid">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
+					class="icon-bar"></span>
+				</a> <a class="brand" href="#">S3 Index Generation</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+		<div class="wizard">
+			<a class="current"><span class="badge badge-inverse">1</span> Specify Your Bucket</a> <a><span class="badge">2</span> Set View Properties</a> <a><span
+				class="badge">3</span> Generate Index</a>
+		</div>
+	</div>
+
+	<div class="row-fluid">
+		<div class="span9">
+			<form>
+				<fieldset>
+					<legend>
+						<i class="icon-asterisk"></i> Bucket Name
+					</legend>
+					<input type="text" class="input-large" placeholder="mybucket">
+					<legend>AWS Credentials</legend>
+					<input type="text" class="input-large" placeholder="Access Key ID"> <input type="password" class="input-large" placeholder="Secret Access Key">
+					<legend>Bucket Parameters</legend>
+					<label><b>Depth Level</b></label> <input type="number" min=1 max=100 class="input-small" placeholder="Infinity"> <label><b>Exclude
+							Paths</b></label>
+					<div class="clonable-exclude-paths">
+						<div class="input-append ">
+							<input class="span6" id="excludePath" type="text" placeholder="*/index.html"> <span class="add-on"> <i id="delExcludePathBtn"
+								class="icon-remove"></i>
+							</span>
+						</div>
+					</div>
+					<button id="addExcludePathBtn" class="btn btn-small" type="button">
+						<i class="icon-plus"></i>
+					</button>
+					<label><b>Include Paths</b></label>
+					<div class="clonable-include-paths">
+						<div class="input-append ">
+							<input class="span6" id="includePath" type="text" placeholder="*/index.html"> <span class="add-on"> <i id="delIncludePathBtn"
+								class="icon-remove"></i>
+							</span>
+						</div>
+					</div>
+					<button id="addIncludePathBtn" class="btn btn-small" type="button">
+						<i class="icon-plus"></i>
+					</button>
+					<hr>
+					<a class="btn btn-large btn-primary" href="#">Next <i class="icon-chevron-right icon-white"></i></a> <a class="btn btn-large" href="#">Go <i
+						class="icon-ok"></i></a>
+
+					<div></div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<!--/row-->
+
+	<hr>
+
+	<footer>
+		<p>&copy; Codeminders 2012</p>
+	</footer>
+
+	<script src="@routes.Assets.at("javascripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
+	<script type="text/javascript">
+		function clone(classId, removeButtonId) {
+			var clonedElement = $('.' + classId);
+			var first = $('.' + classId + ':first');
+			var last = $('.' + classId + ':last');
+			var num = clonedElement.size() - 1;
+			var newNum = new Number(num + 1);
+
+			var newElem = first.clone().removeAttr('hidden');
+			newElem.find('[id]').each(function(index) {
+				$(this).attr('id', $(this).attr('id') + newNum);
+			});
+			last.after(newElem.attr('id', classId + newNum));
+			$('#' + removeButtonId + newNum).click(function() {
+				$('#' + classId + newNum).remove();
+			});
+		}
+		
+		function registerClonable(classId, addButtonId, removeButtonId) {
+			clone(classId, removeButtonId)
+			$('.' + classId + ':first').attr('hidden', 'true')
+			$('#' + addButtonId).click(function() {
+				clone(classId, removeButtonId)
+			});
+		}
+		$(document).ready(function() {
+			registerClonable('clonable-include-paths', 'addIncludePathBtn', 'delIncludePathBtn');
+			registerClonable('clonable-exclude-paths', 'addExcludePathBtn', 'delExcludePathBtn');
+		});
+	</script>
+
+</body>
 </html>

@@ -9,6 +9,7 @@ web/target/*
 web/tmp/*
 web/.history
 web/dist/*
+web/bin/*
 .target/*
 target/*
 *.log
