@@ -17,3 +17,12 @@ body {
 
 .wizard .current {background:#007ACC; color:#fff;}
 .wizard .current:after {border-left-color:#007ACC;}
+
+legend{
+	margin-bottom: 0px;
+}
+
+.control-group {
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
