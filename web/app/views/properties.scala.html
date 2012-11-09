@@ -10,7 +10,7 @@
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
 </head>
 <body>
-
+<div class="container">
 	<div class="navbar">
 		<div class="navbar-inner">
 			<div class="container-fluid">
@@ -21,15 +21,17 @@
 		</div>
 	</div>
 
-	<div class="row-fluid">
+	<div class="row">
+	<div class="span9">
 		<div class="wizard">
 			<a href="#" class="current"><span class="badge badge-inverse">1</span> Specify Your Bucket</a>
 			<a href="#" id="wizardNext" ><span class="badge">2</span> Set View Properties</a> 
 			<a href="#" id="wizardGo" ><span class="badge">3</span> Generate Index</a>
 		</div>
+		</div>
 	</div>
 
-	<div class="row-fluid">
+	<div class="row">
 		<div class="span9">
 			<form id="form">
 				<fieldset>
@@ -101,7 +103,7 @@
 	<footer>
 		<p>&copy; Codeminders 2012</p>
 	</footer>
-
+</div>
 	<script src="@routes.Assets.at("javascripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
 	<script src="@routes.Assets.at("javascripts/s3index.js")" type="text/javascript"></script>
 	<script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>	

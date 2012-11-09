@@ -8,6 +8,7 @@ import play.api.cache.Cache
 import model._
 import play.api.libs.json._
 import com.codeminders.s3simpleclient.AWSCredentials
+import java.util.Random
 
 object Application extends Controller {
 
@@ -19,7 +20,7 @@ object Application extends Controller {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val bucketProperties = getOrInitializeBucketProperties(uuid)
-      Ok(views.html.properties("Generate index.html for all files in Amazon S3 bucket",
+      Ok(views.html.properties("Generate index.html for all files in Amazon S3 bucket. Step 1",
           bucketProperties.name,
           bucketProperties.depthLevel,
           if(bucketProperties.credentials != None) bucketProperties.credentials.get.accessKeyId else "",
@@ -31,8 +32,14 @@ object Application extends Controller {
   }
 
   def viewProperties = TODO
+  
+  def generatorStatus = Action {
+    Ok(Json.toJson(Map( "status" -> Json.toJson(0), "message" -> Json.toJson("Please wait, we will start processing of your request shortly..."), "percents" -> Json.toJson(math.abs(new Random().nextInt()) % 100) )))
+  }
 
-  def generate = TODO
+  def generate = Action {
+    Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
+  }
 
   def setProperties = Action {
     request =>
@@ -42,7 +49,6 @@ object Application extends Controller {
         val parameters = request.body.asFormUrlEncoded.getOrElse(throw new InternalError(Json.toJson("Please specify at least one parameter"), "Request body should not be empty"))
 
         val validator = new PropertiesValidator(parameters).
-          containsAndNotEmpty("bucketName").
           isLengthInRange("bucketName", 3 to 63).
           isNumber("depthLevel").
           isNumberInRange("depthLevel", 1 to 100).
@@ -83,7 +89,6 @@ object Application extends Controller {
 
   private def getOrInitializeBucketProperties(uuid: String): BucketProperties = {
     Cache.getOrElse[BucketProperties](uuid + ".bucket.properties") {
-      println("Generating new Bucket")
       new BucketProperties("")
     }
   }

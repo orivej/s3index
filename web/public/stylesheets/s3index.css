@@ -1,28 +1,90 @@
 body {
-  padding-left: 200px;
-  padding-right: 200px;
+	padding-left: 200px;
+	padding-right: 200px;
 }
 
-.wizard a {padding: 12px 12px 10px 12px; margin-right:5px; background:#efefef; position:relative; display:inline-block; }
-.wizard a:before {width:0px; height:0px; border-top: 20px inset transparent; border-bottom: 20px inset transparent; border-left: 20px solid #fff; position: absolute; content: ""; top: 0; left: 0;}
-.wizard a:after {width:0px; height:0px; border-top: 20px inset transparent; border-bottom: 20px inset transparent; border-left: 20px solid #efefef; position: absolute; content: ""; top: 0; right: -20px; z-index:2;}
-.wizard a:first-child:before {border:none;}
-.wizard a:last-child:after {border:none;}
+.wizard a {
+	padding: 12px 12px 10px 12px;
+	margin-right: 5px;
+	background: #efefef;
+	position: relative;
+	display: inline-block;
+}
 
-.wizard a:first-child {-moz-border-radius: 4px 0 0 4px; -webkit-border-radius: 4px 0 0 4px; border-radius:   4px 0 0 4px;}
-.wizard a:last-child {-moz-border-radius: 0 4px 4px 0; -webkit-border-radius: 0 4px 4px 0; border-radius:   0 4px 4px 0;}
+.wizard a:before {
+	width: 0px;
+	height: 0px;
+	border-top: 20px inset transparent;
+	border-bottom: 20px inset transparent;
+	border-left: 20px solid #fff;
+	position: absolute;
+	content: "";
+	top: 0;
+	left: 0;
+}
 
-.wizard .badge {margin:0 5px 0 18px; position:relative; top:-1px;}
-.wizard a:first-child .badge {margin-left:0;}
+.wizard a:after {
+	width: 0px;
+	height: 0px;
+	border-top: 20px inset transparent;
+	border-bottom: 20px inset transparent;
+	border-left: 20px solid #efefef;
+	position: absolute;
+	content: "";
+	top: 0;
+	right: -20px;
+	z-index: 2;
+}
 
-.wizard .current {background:#007ACC; color:#fff;}
-.wizard .current:after {border-left-color:#007ACC;}
+.wizard a:first-child:before {
+	border: none;
+}
 
-legend{
+.wizard a:last-child:after {
+	border: none;
+}
+
+.wizard a:first-child {
+	-moz-border-radius: 4px 0 0 4px;
+	-webkit-border-radius: 4px 0 0 4px;
+	border-radius: 4px 0 0 4px;
+}
+
+.wizard a:last-child {
+	-moz-border-radius: 0 4px 4px 0;
+	-webkit-border-radius: 0 4px 4px 0;
+	border-radius: 0 4px 4px 0;
+}
+
+.wizard .badge {
+	margin: 0 5px 0 18px;
+	position: relative;
+	top: -1px;
+}
+
+.wizard a:first-child .badge {
+	margin-left: 0;
+}
+
+.wizard .current {
+	background: #007ACC;
+	color: #fff;
+}
+
+.wizard .current:after {
+	border-left-color: #007ACC;
+}
+
+legend {
 	margin-bottom: 0px;
 }
 
 .control-group {
 	margin-top: 0px;
 	margin-bottom: 0px;
+}
+
+.progress {
+	margin-bottom: 0px;
+	margin-top: 0px;
 }
