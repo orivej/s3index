@@ -1,4 +1,4 @@
-function clone(classId, removeButtonId) {
+function clone(classId, removeButtonId, value) {
 	var clonedElement = $('.' + classId);
 	var first = $('.' + classId + ':first');
 	var last = $('.' + classId + ':last');
@@ -12,6 +12,9 @@ function clone(classId, removeButtonId) {
 	newElem.find('[name]').each(function(index) {
 		$(this).attr('name', $(this).attr('name') + newNum);
 	});
+	newElem.find('[value]').each(function(index) {
+		$(this).attr('value', value);
+	});
 	last.after(newElem.attr('id', classId + newNum));
 	$('#' + removeButtonId + newNum).click(function() {
 		$('#' + classId + newNum).remove();
@@ -21,7 +24,7 @@ function clone(classId, removeButtonId) {
 function registerClonable(classId, addButtonId, removeButtonId) {
 	$('.' + classId + ':first').attr('hidden', 'true')
 	$('#' + addButtonId).click(function() {
-		clone(classId, removeButtonId)
+		clone(classId, removeButtonId, '')
 	});
 }
 
@@ -48,13 +51,15 @@ function registerFormSubmitButton(buttonId, targetUrl, nextPageUrl) {
 					type : "post",
 					data : serializedData,
 					success : function(response, textStatus, jqXHR) {
-						console.log("Hooray, it worked!");
+						console.log(textStatus);
+						window.location.href = nextPageUrl
 					},
 					error : function(jqXHR, textStatus, errorThrown) {
 						var responseJSON = jQuery.parseJSON(jqXHR.responseText);
+						console.log("Error: " + errorThrown + ", json=" + jqXHR.responseText + ", status=" + textStatus);
 						$.each(responseJSON, function (i, err) {
-							$('#CG' + err.errorId).addClass('error')
-						    $('#CG' + err.errorId).append('<span class="s3index-error-msg help-inline">' + err.errorMessage + '</span>');
+							$('#CG' + err.elementId).addClass('error')
+						    $('#CG' + err.elementId).append('<span class="s3index-error-msg help-inline">' + err.errorMessage + '</span>');
 						});
 					},
 					complete : function() {

@@ -40,5 +40,6 @@ object S3IndexBuild extends Build {
                            base = file("s3-simple-client"))
                            
     lazy val web = PlayProject("s3index-web", appVersion, appDependencies, mainLang = SCALA, path = file("web")).settings( 
+	testOptions in Test := Nil
     )  dependsOn(s3simpleclient)
 }
