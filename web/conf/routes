@@ -2,19 +2,18 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
+GET     /                          controllers.Application.index
 
-GET     /                               controllers.Application.index
+GET     /generalPropertiesPage     controllers.Application.generalPropertiesPage
 
-GET     /properties                       controllers.Application.properties
+GET     /viewPropertiesPage        controllers.Application.viewPropertiesPage
 
-GET     /viewProperties                      controllers.Application.viewProperties
+GET     /generatorPage             controllers.Application.generatorPage
 
-GET     /generate                       controllers.Application.generate
+GET     /properties                controllers.Application.properties
 
-GET     /generatorStatus              controllers.Application.generatorStatus
+GET     /status                    controllers.Application.status
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file              controllers.Assets.at(path="/public", file)
 
-POST     /properties               controllers.Application.setProperties
+POST    /properties                controllers.Application.setProperties

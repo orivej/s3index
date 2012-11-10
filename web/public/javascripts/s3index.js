@@ -9,9 +9,6 @@ function clone(classId, removeButtonId, value) {
 	newElem.find('[id]').each(function(index) {
 		$(this).attr('id', $(this).attr('id') + newNum);
 	});
-	newElem.find('[name]').each(function(index) {
-		$(this).attr('name', $(this).attr('name') + newNum);
-	});
 	newElem.find('[value]').each(function(index) {
 		$(this).attr('value', value);
 	});

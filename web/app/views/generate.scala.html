@@ -25,8 +25,8 @@
 <div class="row">
 <div class="span9">
   <div class="wizard">
-      <a href="@routes.Application.properties" id="wizardPropertiesLink" ><span class="badge">1</span> Specify Your Bucket</a>
-      <a href="@routes.Application.viewProperties" id="wizardViewPropertiesLink" ><span class="badge">2</span> Set View Properties</a> 
+      <a href="@routes.Application.generalPropertiesPage" id="wizardPropertiesLink" ><span class="badge">1</span> Specify Your Bucket</a>
+      <a href="@routes.Application.viewPropertiesPage" id="wizardViewPropertiesLink" ><span class="badge">2</span> Set View Properties</a> 
       <a href="#" class="current" ><span class="badge badge-inverse">3</span> Generate Index</a>
   </div>
   </div>
@@ -68,12 +68,18 @@
 			$(document).ready(
 					function worker() {
 						$.ajax({
-							url : '@routes.Application.generatorStatus',
+							url : '@routes.Application.status',
+							cache: false,
 							success : function(response, textStatus, jqXHR) {
 								console.log("Resp: " + response + ", json="
 										+ jqXHR.responseText + ", status="
 										+ textStatus);
 								processGeneratorStatusResponse(jQuery.parseJSON(jqXHR.responseText))
+							},
+							error : function(jqXHR, textStatus, errorThrown) {
+								$('#messageIcon').attr("class", ' icon-minus-sign')
+						    $('#messageAlert').attr("class", 'alert alert-error')
+						    $('#message').replaceWith('<span id="message"> Sorry, we are not able to process you request now. Please come back later.</span>');
 							},
 							complete : function() {
 								setTimeout(worker, 5000);

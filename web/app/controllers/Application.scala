@@ -9,36 +9,52 @@ import model._
 import play.api.libs.json._
 import com.codeminders.s3simpleclient.AWSCredentials
 import java.util.Random
+import play.api.GlobalSettings
 
 object Application extends Controller {
 
   def index = Action {
-    Redirect(routes.Application.properties)
+    Redirect(routes.Application.generalPropertiesPage)
+  }
+
+  def generalPropertiesPage = Action {
+    Ok(views.html.properties("Generate index.html for all files in Amazon S3 bucket. Step 1"))
+  }
+
+  def viewPropertiesPage = TODO
+  
+  def generatorPage = Action {
+    request => 
+    val uuid = getOrInitializeUUID(request)
+    val bucketProperties = getOrInitializeBucketProperties(uuid)
+    Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
+    bucketProperties.status.set(bucketProperties.status.get() % 0 info ("Please wait. We will start processing of your bucket shortly")) 
+    IndexGenerator ! bucketProperties
+    Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
+  }
+  
+  def status = Action {
+    request =>
+    val uuid = getOrInitializeUUID(request)
+    val bucketProperties = getOrInitializeBucketProperties(uuid)
+    Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
+    Ok(bucketProperties.status.get().toJSON)
   }
 
   def properties = Action {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val bucketProperties = getOrInitializeBucketProperties(uuid)
-      Ok(views.html.properties("Generate index.html for all files in Amazon S3 bucket. Step 1",
-          bucketProperties.name,
-          bucketProperties.depthLevel,
-          if(bucketProperties.credentials != None) bucketProperties.credentials.get.accessKeyId else "",
-          if(bucketProperties.credentials != None) bucketProperties.credentials.get.secretKey else "",
-          bucketProperties.excludedPaths.toList,
-          bucketProperties.includedPaths.toList
-       ))
+      Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
+      val response = Json.toJson(
+        Map("bucketName" -> Json.toJson(bucketProperties.name),
+          "accessKeyID" -> Json.toJson(if(bucketProperties.credentials != None) bucketProperties.credentials.get.accessKeyId else ""),
+          "secretAccessKey" -> Json.toJson(if(bucketProperties.credentials != None) bucketProperties.credentials.get.secretKey else ""),
+          "depthLevel" -> Json.toJson(bucketProperties.depthLevel),
+          "includeKey" -> Json.toJson(bucketProperties.includedPaths.toList),
+          "excludeKey" -> Json.toJson(bucketProperties.excludedPaths.toList)))
 
-  }
-
-  def viewProperties = TODO
-  
-  def generatorStatus = Action {
-    Ok(Json.toJson(Map( "status" -> Json.toJson(0), "message" -> Json.toJson("Please wait, we will start processing of your request shortly..."), "percents" -> Json.toJson(math.abs(new Random().nextInt()) % 100) )))
-  }
-
-  def generate = Action {
-    Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
+      Ok(response)
   }
 
   def setProperties = Action {
@@ -47,7 +63,6 @@ object Application extends Controller {
         val uuid = getOrInitializeUUID(request)
         val bucketProperties = getOrInitializeBucketProperties(uuid)
         val parameters = request.body.asFormUrlEncoded.getOrElse(throw new InternalError(Json.toJson("Please specify at least one parameter"), "Request body should not be empty"))
-
         val validator = new PropertiesValidator(parameters).
           isLengthInRange("bucketName", 3 to 63).
           isNumber("depthLevel").
@@ -61,22 +76,19 @@ object Application extends Controller {
 
         bucketProperties.depthLevel = if (parameters.contains("depthLevel")) parameters.get("depthLevel").get(0).toInt else bucketProperties.depthLevel
 
-        bucketProperties.credentials = if (parameters.contains("accessKeyID") && parameters.contains("secretAccessKey")) {
-          Option(new AWSCredentials(parameters.get("accessKeyID").get(0), parameters.get("secretAccessKey").get(0)))
+        bucketProperties.credentials = if (parameters.contains("accessKeyID") &&
+            !parameters("accessKeyID")(0).isEmpty &&
+            parameters.contains("secretAccessKey") && 
+            !parameters("secretAccessKey")(0).isEmpty) {
+        		Option(new AWSCredentials(parameters("accessKeyID")(0), parameters("secretAccessKey")(0)))
         } else bucketProperties.credentials
 
-        bucketProperties.includedPaths = if (parameters.exists(_._1.matches("includeKey\\d+"))) {
-          parameters.filter(_._1.matches("includeKey\\d+")).foldLeft(List[String]())((l, v) => v._2(0) :: l).toSet
-        } else {
-          bucketProperties.includedPaths
-        }
+        bucketProperties.includedPaths = if (parameters.contains("includeKey")) parameters.get("includeKey").get.filter(!_.isEmpty()).toSet[String] else bucketProperties.includedPaths
 
-        bucketProperties.excludedPaths = if (parameters.exists(_._1.matches("excludeKey\\d+"))) {
-          parameters.filter(_._1.matches("excludeKey\\d+")).foldLeft(List[String]())((l, v) => v._2(0) :: l).toSet
-        } else {
-          bucketProperties.includedPaths
-        }
-
+        bucketProperties.excludedPaths = if (parameters.contains("excludeKey")) parameters.get("excludeKey").get.filter(!_.isEmpty()).toSet[String] else bucketProperties.excludedPaths
+        
+        Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
+        
         Ok("OK").withSession(
           request.session + ("uuid" -> uuid))
 
