@@ -10,3 +10,4 @@ class InternalError(response: JsValue, logMessage: String) extends S3IndexExcept
 
 class BadRequestError(response: JsValue, logMessage: String) extends S3IndexException(400, response, logMessage) {
 }
+

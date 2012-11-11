@@ -62,45 +62,62 @@
 </div>
   <script src="@routes.Assets.at("javascripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
   <script src="@routes.Assets.at("javascripts/s3index.js")" type="text/javascript"></script>
-  <script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script> 
-  <script type="text/javascript">
+  <script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>
+  <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
+	<script type="text/javascript">
+		
+    $(document).ready(function worker() {
+      var done = false;
+      $.ajax({
+        url : '@routes.Application.status',
+        cache : false,
+        success : function(response, textStatus, jqXHR) {
+          console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
+          if (!processGeneratorStatusResponse(jQuery.parseJSON(jqXHR.responseText))) {
+            setTimeout(worker, 5000); // poll every 5 seconds
+          }
+        },
+        error : function(jqXHR, textStatus, errorThrown) {
+          $('#messageIcon').attr("class", ' icon-minus-sign')
+          $('#messageAlert').attr("class", 'alert alert-error')
+          $('#message').replaceWith('<span id="message"> Sorry, we are not able to process you request now. Please come back later.</span>');
+        }
+      });
+    });
+
+    function processGeneratorStatusResponse(status) {
+      var isDone = false
+      if (status.status == 0) {
+        updateStatus('alert alert-info', 'icon-info-sign', status.message, status.percents)
+      } else if (status.status == 1) {
+        if (status.hasOwnProperty('fileId') && status.fileId) {
+          var fileUrl = jsRoutes.controllers.Application.getIndex(status.fileId).absoluteURL();
+          var message = status.message + '. Your file will be downloaded in a moment. If it won\'t start, please use <a href="' + fileUrl + '">this</a> link.';
+          updateStatus('alert alert-success', 'icon-thumbs-up', message, status.percents)
+          downloadFile(fileUrl)
+        } else {
+          updateStatus('alert alert-success', 'icon-thumbs-up', status.message, status.percents)
+        }
+        isDone = true;
+      } else if (status.status == 2) {
+        updateStatus('alert alert-error', 'icon-thumbs-down', status.message, status.percents)
+        isDone = true;
+      }
+      return isDone;
+    }
     
-			$(document).ready(
-					function worker() {
-						$.ajax({
-							url : '@routes.Application.status',
-							cache: false,
-							success : function(response, textStatus, jqXHR) {
-								console.log("Resp: " + response + ", json="
-										+ jqXHR.responseText + ", status="
-										+ textStatus);
-								processGeneratorStatusResponse(jQuery.parseJSON(jqXHR.responseText))
-							},
-							error : function(jqXHR, textStatus, errorThrown) {
-								$('#messageIcon').attr("class", ' icon-minus-sign')
-						    $('#messageAlert').attr("class", 'alert alert-error')
-						    $('#message').replaceWith('<span id="message"> Sorry, we are not able to process you request now. Please come back later.</span>');
-							},
-							complete : function() {
-								setTimeout(worker, 5000);
-							}
-						});
-					});
-			
-			function processGeneratorStatusResponse(status){
-				if(status.status == 0){
-					$('#messageIcon').attr("class", 'icon-info-sign')
-					$('#messageAlert').attr("class", 'alert alert-info')
-				} else if(status.status == 1){
-					$('#messageIcon').attr("class", 'icon-thumbs-up')
-					$('#messageAlert').attr("class", 'alert alert-success')
-				} else if(status.status == 2){
-					$('#messageIcon').attr("class", 'icon-thumbs-down')
-					$('#messageAlert').attr("class", 'alert alert-error')
-				}
-				$('#progressBar').attr('style', 'width: ' + status.percents + '%;')
-				$('#message').replaceWith('<span id="message">' + status.message + '</span>');
-			}
-		</script>
+    function updateStatus(fieldStatus, iconType, message, percentage){
+      $('#messageAlert').attr("class", fieldStatus);
+      $('#messageIcon').attr("class", iconType);
+      $('#message').replaceWith('<span id="message">' + message + '</span>');
+      $('#progressBar').attr('style', 'width: ' + percentage + '%;');
+    }
+
+    function downloadFile(link) {
+      window.location= link;
+    }
+  </script>
+
 </body>
+<iframe id="downloadFrame" style="display:none"></iframe>
 </html>
