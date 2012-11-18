@@ -23,20 +23,27 @@ object IndexGenerator extends Actor {
           try {
             if(t.properties.get() == None){
               Logger.info("Got an empty task with id %s.".format(t.id))
+              t.status.set(t.status.get() % 0 error ("Please specify at least bucket name") fileId (t.id))
             } else {
             	val properties = t.properties.get().get
-	            val s3 = properties.credentials match {
-            	  case None => SimpleS3()
-            	  case Some(c) => SimpleS3(AWSCredentials(c.accessKeyId, c.secretKey))
+            	if(properties.name.isEmpty()) {
+            		t.status.set(t.status.get() % 0 error ("Please set bucket name") fileId (t.id))
+              		Logger.debug("Won't process - empty bucket name")
             	}
-	            Logger.info("Started task %s, bucket %s. ".format(t.id, properties.name))
-	            val result = new ByteArrayOutputStream();
-	            val outputStream = new ZipOutputStream(result)
-	            generateIndex(t, s3, properties.name, s3.bucket(properties.name).list(), outputStream)
-	            outputStream.close()
-	            t.result = Option(result.toByteArray())
-	            t.status.set(t.status.get() % 100 done ("Done") fileId (t.id))
-	            Logger.info("Finished task %s, bucket %s. ".format(t.id, properties.name))
+            	else {
+		            val s3 = properties.credentials match {
+	            	  case None => SimpleS3()
+	            	  case Some(c) => SimpleS3(AWSCredentials(c.accessKeyId, c.secretKey))
+	            	}
+		            Logger.info("Started task %s, bucket %s. ".format(t.id, properties.name))
+		            val result = new ByteArrayOutputStream();
+		            val outputStream = new ZipOutputStream(result)
+		            generateIndex(t, s3, properties.name, s3.bucket(properties.name).list(), outputStream)
+		            outputStream.close()
+		            t.result = Option(result.toByteArray())
+		            t.status.set(t.status.get() % 100 done ("Done") fileId (t.id))
+		            Logger.info("Finished task %s, bucket %s. ".format(t.id, properties.name))
+            	}
             }
           } catch {
             case e: Exception => {

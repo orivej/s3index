@@ -40,6 +40,15 @@ function registerFormSubmitButton(buttonId, targetUrl, nextPageUrl) {
 				var $form = $("form"),
 				$inputs = $form.find("input, select, button, textarea"),
 				serializedData = $form.serialize();
+				
+				$('input[type=checkbox]').each(function() {     
+				    if (this.checked) {
+
+				    }
+				    else {
+				      serializedData += '&'+this.name+'=off';
+				    }
+				});
 
 				$inputs.attr("disabled", "disabled");
 
@@ -93,4 +102,20 @@ function registerSpinner(targetElementId){
 		}).ajaxStop(function() {
 			spinner.stop();
 		});
+}
+
+function loadProperties(url) {
+  console.log("loadProperties")
+  $.ajax({
+    url : url,
+    cache : false,
+    success : function(response, textStatus, jqXHR) {
+      console.log("success")
+      console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
+      applyProperties(jQuery.parseJSON(jqXHR.responseText))
+    },
+    error : function(jqXHR, textStatus, errorThrown) {
+      //TODO
+    }
+  });
 }

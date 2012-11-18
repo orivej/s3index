@@ -7,7 +7,7 @@
 <title>@pageTitle</title>
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/s3index.css")">
-<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("img/favicon.ico")">
 </head>
 <body>
 	<div class="container">
@@ -60,30 +60,22 @@
 							<label><b>Exclude Keys</b></label>
 							<div class="clonable-exclude-keys">
 								<div id="CGexcludeKey" class="control-group">
-									<div class="input-append">
-										<input class="span6" name="excludeKey" id="excludeKey" type="text" value=""> <span class="add-on"> <i id="delExcludeKeyBtn"
-											class="icon-remove"></i></span>
-									</div>
+										<input class="span6" name="excludeKey" id="excludeKey" type="text" value=""> 
+                    <a href="#" id="delExcludeKeyBtn"><i class="icon-minus"></i> Remove</a>
 								</div>
 							</div>
-							<button id="addExcludeKeyBtn" class="btn btn-small" type="button">
-								<i class="icon-plus"></i>
-							</button>
+							<a href="#" id="addExcludeKeyBtn"><i class="icon-plus"></i> Add</a>
 						</div>
 						<!-- Include Key -->
 						<div class="control-group">
 							<label><b>Include Keys</b></label>
 							<div class="clonable-include-keys">
 								<div id="CGincludeKey" class="control-group">
-									<div class="input-append">
-										<input class="span6" name="includeKey" id="includeKey" type="text" value=""> <span class="add-on"> <i id="delIncludeKeyBtn"
-											class="icon-remove"></i></span>
-									</div>
+										<input class="span6" name="includeKey" id="includeKey" type="text" value="">
+                    <a href="#" id="delIncludeKeyBtn"><i class="icon-minus"></i> Remove</a>
 								</div>
 							</div>
-							<button id="addIncludeKeyBtn" class="btn btn-small" type="button">
-								<i class="icon-plus"></i>
-							</button>
+							<a href="#" id="addIncludeKeyBtn"><i class="icon-plus"></i> Add</a>
 						</div>
 						<hr>
 						<!-- Next -->
@@ -109,41 +101,14 @@
 	<script type="text/javascript">
 		$(document).ready(
 				function() {
-					console.log("document.ready")
-					registerClonable('clonable-include-keys',
-							'addIncludeKeyBtn', 'delIncludeKeyBtn');
-					registerClonable('clonable-exclude-keys',
-							'addExcludeKeyBtn', 'delExcludeKeyBtn');
-					registerFormSubmitButton('next',
-							'@routes.Application.properties',
-							'@routes.Application.viewPropertiesPage')
-					registerFormSubmitButton('go',
-							'@routes.Application.properties',
-							'@routes.Application.generatorPage')
-					registerFormSubmitButton('wizardNext',
-							'@routes.Application.properties',
-							'@routes.Application.viewPropertiesPage')
-					registerFormSubmitButton('wizardGo',
-							'@routes.Application.properties',
-							'@routes.Application.generatorPage')
-					loadProperties()
+					registerClonable('clonable-include-keys', 'addIncludeKeyBtn', 'delIncludeKeyBtn');
+					registerClonable('clonable-exclude-keys',	'addExcludeKeyBtn', 'delExcludeKeyBtn');
+					registerFormSubmitButton('next', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
+					registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.generatorPage')
+					registerFormSubmitButton('wizardNext', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
+					registerFormSubmitButton('wizardGo', '@routes.Application.properties', '@routes.Application.generatorPage')
+					loadProperties('@routes.Application.properties')
 				});
-		function loadProperties() {
-			console.log("loadProperties")
-			$.ajax({
-				url : '@routes.Application.properties',
-				cache : false,
-				success : function(response, textStatus, jqXHR) {
-					console.log("success")
-					console.log("Resp: " + response + ", json="
-							+ jqXHR.responseText + ", status=" + textStatus);
-					applyProperties(jQuery.parseJSON(jqXHR.responseText))
-				},
-				error : function(jqXHR, textStatus, errorThrown) {
-		      //TODO
-	      }
-			});
-		}
 
 		function applyProperties(properties) {
 			$('#bucketName').val(properties.bucketName);

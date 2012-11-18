@@ -26,7 +26,7 @@ object Application extends Controller {
   }
 
   def viewPropertiesPage = Action {
-    Redirect(routes.Application.generatorPage)
+    Ok(views.html.viewProperties("Generate index.html for all files in Amazon S3 bucket. Step 2"))
   }
 
   def generatorPage = Action {
@@ -51,17 +51,10 @@ object Application extends Controller {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val task = getOrInitializeS3IndexTask(uuid)
-      val taskProperties = task.properties.get().getOrElse(new PropertiesBuilder("").toProperties)
+      val taskProperties = task.properties.get().getOrElse(new Properties(""))
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
-      val response = Json.toJson(
-        Map("bucketName" -> Json.toJson(taskProperties.name),
-          "accessKeyID" -> Json.toJson(if (taskProperties.credentials != None) taskProperties.credentials.get.accessKeyId else ""),
-          "secretAccessKey" -> Json.toJson(if (taskProperties.credentials != None) taskProperties.credentials.get.secretKey else ""),
-          "depthLevel" -> Json.toJson(taskProperties.depthLevel),
-          "includeKey" -> Json.toJson(taskProperties.includedPaths.toList),
-          "excludeKey" -> Json.toJson(taskProperties.excludedPaths.toList)))
 
-      Ok(response)
+      Ok(taskProperties.toJSON())
   }
 
   def setProperties = Action {
@@ -70,6 +63,7 @@ object Application extends Controller {
         val uuid = getOrInitializeUUID(request)
         val task = getOrInitializeS3IndexTask(uuid)
         val parameters = request.body.asFormUrlEncoded.getOrElse(throw new InternalError(Json.toJson("Please specify at least one parameter"), "Request body should not be empty"))
+        Logger.debug("parameters -> " + parameters.toString())
         val validator = new PropertiesValidator(parameters).
           isLengthInRange("bucketName", 3 to 63).
           isNumber("depthLevel").
@@ -78,24 +72,11 @@ object Application extends Controller {
           isLengthInRange(parameters.foldLeft(List[String]())((l, p) => if (p._1.matches("includeKey\\d+")) p._1 :: l else l), 1 to 1024)
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
-
-        val propertiesBuilder = new PropertiesBuilder(parameters.get("bucketName").get(0))
-
-        if (parameters.contains("depthLevel")) propertiesBuilder.withDepthLevel(parameters.get("depthLevel").get(0).toInt)
-
-        if (parameters.contains("accessKeyID") && !parameters("accessKeyID")(0).isEmpty &&
-          parameters.contains("secretAccessKey") && !parameters("secretAccessKey")(0).isEmpty)
-          propertiesBuilder.withCredentials(new AWSCredentials(parameters("accessKeyID")(0), parameters("secretAccessKey")(0)))
-
-        if (parameters.contains("includeKey")) propertiesBuilder.withIncludedPaths(parameters.get("includeKey").get.filter(!_.isEmpty()).toSet[String])
-
-        if (parameters.contains("excludeKey")) propertiesBuilder.withExcludedPaths(parameters.get("excludeKey").get.filter(!_.isEmpty()).toSet[String])
-
-        val taskProperties = propertiesBuilder.toProperties
-
-        Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
-
-        task.properties.set(Option(taskProperties))
+        else {
+          val taskProperties = validator.toProperties(task.properties.get().getOrElse(new Properties("")))
+          Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
+          task.properties.set(Option(taskProperties))
+        }
 
         Ok("OK").withSession(
           request.session + ("uuid" -> uuid))

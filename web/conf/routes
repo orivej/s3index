@@ -6,11 +6,11 @@ GET     /                          controllers.Application.index
 
 GET     /assets/javascripts/routes controllers.Application.javascriptRoutes
 
-GET     /generalPropertiesPage     controllers.Application.generalPropertiesPage
+GET     /general-properties       controllers.Application.generalPropertiesPage
 
-GET     /viewPropertiesPage        controllers.Application.viewPropertiesPage
+GET     /view-properties          controllers.Application.viewPropertiesPage
 
-GET     /generatorPage             controllers.Application.generatorPage
+GET     /generator                 controllers.Application.generatorPage
 
 GET     /properties                controllers.Application.properties
 

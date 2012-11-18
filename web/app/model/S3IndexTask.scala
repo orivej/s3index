@@ -3,6 +3,8 @@ package model
 import com.codeminders.s3simpleclient.AWSCredentials
 import java.util.concurrent.atomic.AtomicReference
 import java.io.OutputStream
+import play.api.libs.json.JsValue
+import play.api.libs.json.Json
 
 case class S3IndexTask(id: String,
     var properties: AtomicReference[Option[Properties]] = new AtomicReference(None),
@@ -10,36 +12,29 @@ case class S3IndexTask(id: String,
     var result: Option[Array[Byte]] = None){
 }
 
-case class Properties(name: String, credentials: Option[AWSCredentials], depthLevel: Int, excludedPaths: Set[String], includedPaths: Set[String]) {
+case class Properties(name: String,
+    credentials: Option[AWSCredentials] = None,
+    depthLevel: Int = 100,
+    excludedPaths: Set[String] = Set("*/index.html"),
+    includedPaths: Set[String] = Set(),
+    template: String = "Simple",
+    fileListFormat: String = "Full", 
+    directoriesAreLinks: Boolean = true,
+    filesAreLinks: Boolean = true,
+    customCSS: Set[String] = Set()) {
+  
+  def toJSON(): JsValue = {
+    Json.toJson(
+        Map("bucketName" -> Json.toJson(name),
+          "accessKeyID" -> Json.toJson(if (credentials != None) credentials.get.accessKeyId else ""),
+          "secretAccessKey" -> Json.toJson(if (credentials != None) credentials.get.secretKey else ""),
+          "depthLevel" -> Json.toJson(depthLevel),
+          "includeKey" -> Json.toJson(includedPaths.toList),
+          "excludeKey" -> Json.toJson(excludedPaths.toList),
+          "template" -> Json.toJson(template),
+          "fileListFormat" -> Json.toJson(fileListFormat),
+          "directoriesAreLinks" -> Json.toJson(directoriesAreLinks),
+          "filesAreLinks" -> Json.toJson(filesAreLinks),
+          "customCSS" -> Json.toJson(customCSS.toList)))
+  }
 }
-
-class PropertiesBuilder(val name: String, var credentials: Option[AWSCredentials] = None, var depthLevel: Int = 100, var excludedPaths: Set[String] = Set("*/index.html"), var includedPaths: Set[String] = Set()){
-	
-	def this(name: String) = this(name, None, 100, Set("*/index.html"), Set())
-	
-	def withCredentials(newCredentials: AWSCredentials): PropertiesBuilder = {
-	  this.credentials = Option(newCredentials)
-	  this
-	}
-	
-	def withDepthLevel(newDepthLevel: Int): PropertiesBuilder = {
-	  this.depthLevel = newDepthLevel
-	  this
-	}
-	
-	def withExcludedPaths(newExcludedPaths: Set[String]): PropertiesBuilder = {
-	  this.excludedPaths = newExcludedPaths
-	  this
-	}
-	
-	def withIncludedPaths(newIncludedPaths: Set[String]): PropertiesBuilder = {
-	  this.includedPaths = newIncludedPaths
-	  this
-	}
-	
-	def toProperties(): Properties = {
-	  Properties(name, credentials, depthLevel, excludedPaths, includedPaths)
-	}
-	
-}
-
