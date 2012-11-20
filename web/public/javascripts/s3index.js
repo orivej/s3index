@@ -38,7 +38,7 @@ function registerFormSubmitButton(buttonId, targetUrl, nextPageUrl) {
 				});
 				//submit form
 				var $form = $("form"),
-				$inputs = $form.find("input, select, button, textarea"),
+				$inputs = $form.find("input:not(:disabled), select:not(:disabled), button:not(:disabled), textarea:not(:disabled)"),
 				serializedData = $form.serialize();
 				
 				$('input[type=checkbox]').each(function() {     
@@ -56,23 +56,30 @@ function registerFormSubmitButton(buttonId, targetUrl, nextPageUrl) {
 					url : targetUrl,
 					type : "post",
 					data : serializedData,
+					timeout: 10000,
 					success : function(response, textStatus, jqXHR) {
-						console.log(textStatus);
 						window.location.href = nextPageUrl
 					},
 					error : function(jqXHR, textStatus, errorThrown) {
-						var responseJSON = jQuery.parseJSON(jqXHR.responseText);
-						console.log("Error: " + errorThrown + ", json=" + jqXHR.responseText + ", status=" + textStatus);
-						$.each(responseJSON, function (i, err) {
-							$('#CG' + err.elementId).addClass('error')
-						    $('#CG' + err.elementId).append('<span class="s3index-error-msg help-inline">' + err.errorMessage + '</span>');
-						});
+					  console.log("Error: " + errorThrown + ", json=" + jqXHR.responseText + ", status=" + textStatus);
+					  try
+					  {
+					    var responseJSON = jQuery.parseJSON(jqXHR.responseText);
+                        $.each(responseJSON, function (i, err) {
+                          $('.control-group').has('input[name="' + err.elementId + '"]').addClass('error')
+                          $('.control-group').has('input[name="' + err.elementId + '"]').append('<span class="s3index-error-msg help-inline">' + err.errorMessage + '</span>');
+                        });
+					  }
+					  catch(e)
+					  {
+					    if(!jqXHR.responseText) displayContent(e);
+					    else displayContent(jqXHR.responseText);
+					  }
 					},
 					complete : function() {
 						$inputs.removeAttr("disabled");
 					}
 				});
-
 				event.preventDefault();
 			});
 }
@@ -105,7 +112,6 @@ function registerSpinner(targetElementId){
 }
 
 function loadProperties(url) {
-  console.log("loadProperties")
   $.ajax({
     url : url,
     cache : false,
@@ -115,7 +121,13 @@ function loadProperties(url) {
       applyProperties(jQuery.parseJSON(jqXHR.responseText))
     },
     error : function(jqXHR, textStatus, errorThrown) {
-      //TODO
+      displayContent(responseText);
     }
   });
+}
+
+function displayContent(content){
+  document.open();
+  document.write(content);
+  document.close();
 }

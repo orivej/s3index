@@ -12,13 +12,46 @@ case class S3IndexTask(id: String,
     var result: Option[Array[Byte]] = None){
 }
 
+object OutputOption extends Enumeration {
+     type OutputOption = Value
+     val ZipArchive, Bucket = Value
+     def fromString(value: String): OutputOption = value.trim().toLowerCase() match {
+       case "bucket" => Bucket 
+       case _ => ZipArchive
+     }
+}
+
+object TemplateStyle extends Enumeration {
+     type TemplateStyle = Value
+     val Simple, Slim, Blue, Orange = Value
+     def fromString(value: String): TemplateStyle = value.trim().toLowerCase() match {
+       case "simple" => Simple
+       case "slim" => Slim
+       case "blue" => Blue
+       case _ => Orange
+     }
+}
+
+object FileListFormat extends Enumeration {
+     type FileListFormat = Value
+     val Full, Brief = Value
+     def fromString(value: String): FileListFormat = value.trim().toLowerCase() match {
+       case "full" => Full
+       case _ => Brief
+     }
+}
+
+import OutputOption._
+import TemplateStyle._
+import FileListFormat._
+
 case class Properties(name: String,
     credentials: Option[AWSCredentials] = None,
-    depthLevel: Int = 100,
+    outputOption: OutputOption = ZipArchive,
     excludedPaths: Set[String] = Set("*/index.html"),
     includedPaths: Set[String] = Set(),
-    template: String = "Simple",
-    fileListFormat: String = "Full", 
+    template: TemplateStyle = Simple,
+    fileListFormat: FileListFormat = Full, 
     directoriesAreLinks: Boolean = true,
     filesAreLinks: Boolean = true,
     customCSS: Set[String] = Set()) {
@@ -28,11 +61,11 @@ case class Properties(name: String,
         Map("bucketName" -> Json.toJson(name),
           "accessKeyID" -> Json.toJson(if (credentials != None) credentials.get.accessKeyId else ""),
           "secretAccessKey" -> Json.toJson(if (credentials != None) credentials.get.secretKey else ""),
-          "depthLevel" -> Json.toJson(depthLevel),
+          "outputTo" -> Json.toJson(outputOption.toString()),
           "includeKey" -> Json.toJson(includedPaths.toList),
           "excludeKey" -> Json.toJson(excludedPaths.toList),
-          "template" -> Json.toJson(template),
-          "fileListFormat" -> Json.toJson(fileListFormat),
+          "template" -> Json.toJson(template.toString()),
+          "fileListFormat" -> Json.toJson(fileListFormat.toString()),
           "directoriesAreLinks" -> Json.toJson(directoriesAreLinks),
           "filesAreLinks" -> Json.toJson(filesAreLinks),
           "customCSS" -> Json.toJson(customCSS.toList)))

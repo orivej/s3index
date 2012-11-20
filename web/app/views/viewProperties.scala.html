@@ -1,138 +1,101 @@
-@(pageTitle: String)
+@(pageTitle: String) 
 
-<!DOCTYPE html>
-
-<html>
-<head>
-<title>@pageTitle</title>
-<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
-<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/s3index.css")">
-<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("img/favicon.ico")">
-</head>
-<body>
-	<div class="container">
-		<div class="navbar">
-			<div class="navbar-inner">
-				<div class="container-fluid">
-					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
-						class="icon-bar"></span>
-					</a> <a class="brand" href="#">S3 Index Generation</a>
+@main(pageTitle) {
+  @content{
+		<p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
+		<p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML could
+			be customized at the second page of this wizard.</p>
+  } {
+		<div class="wizard">
+			<a href="#" id="propertiesPageLink"><span class="badge">1</span> Specify Your Bucket</a>
+			<a href="#" class="current"><span class="badge badge-inverse">2</span>Set	View Properties</a>
+			<a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+		</div>
+  } {
+		<form id="form">
+			<fieldset>
+				<legend>Template Properties</legend>
+				<label>Select template from drop-down list</label>
+				<div class="controls controls-row">
+					<select name='template' class="span3">
+						<option>Simple</option>
+						<option>Slim</option>
+						<option>Blue</option>
+						<option>Orange</option>
+					</select> <img id='templatePreview' class="img-polaroid span5">
 				</div>
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="span9">
-				<div class="wizard">
-					<a href="#" id="propertiesPageLink" ><span class="badge">1</span> Specify Your Bucket</a>
-				  <a href="#" class="current"><span class="badge badge-inverse">2</span>Set View Properties</a>
-				  <a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+				<hr>
+				<label>Select file list format</label>
+				<div class="controls controls-row">
+					<select name='fileListFormat' class="span3">
+						<option>Brief</option>
+						<option>Full</option>
+					</select> <img id='fileListFormatPreview' class="img-polaroid span5">
 				</div>
-			</div>
-		</div>
-
-		<div class="row">
-			<div class="span9">
-				<form id="form">
-					<fieldset>
-					  <!-- Template -->
-						<legend>Template</legend>
-						<select name='template'>
-							<option>Simple</option>
-							<option>Slim</option>
-							<option>Blue</option>
-							<option>Orange</option>
-						</select>
-						<img id='templatePreview' class="img-rounded">
-						
-						<!-- File List Format -->
-						<legend>File List Format</legend>
-						<select name='fileListFormat'>
-							<option>Brief</option>
-							<option>Full</option>
-						</select>
-						<img id='fileListFormatPreview' class="img-rounded">
-						
-						<legend>Directory and Files</legend>
-						
-						<!-- Directories are links -->
-						<label class="checkbox"><input name="directoriesAreLinks" type="checkbox">Directories are links</label>
-						<!-- Files are links --> 
-						<label class="checkbox"> <input name="filesAreLinks" type="checkbox">Files are links</label>
-						
-						<!-- Custom CSS -->
-						<legend>Custom CSS</legend>
-						<div class="control-group">
-							<div class="clonableCustomCSS">
-								<div id="CGcustomCSS" class="control-group">
-									<input class="span6" name="customCSS" id="customCSS" type="text" value="">
-									 <a href="#" id="delCustomCSS"><i class="icon-minus"></i>
-										Remove</a>
-								</div>
-							</div>
-							<a href="#" id="addCustomCSS"><i class="icon-plus"></i> Add</a>
-						</div>
-
-						<hr>
-						<!-- Back -->
-						<a class="btn btn-large" href="#" id="back"><i class="icon-chevron-left"></i> Back</a>
-						<!-- Go -->
-						<a class="btn btn-large btn-primary" href="#" id="go">Go <i class="icon-ok icon-white"></i></a>
-					</fieldset>
-				</form>
-			</div>
-		</div>
-		<!--/row-->
-
-		<hr>
-
-		<footer>
-			<p>&copy; Codeminders 2012</p>
-		</footer>
-	</div>
-	<script src="@routes.Assets.at("javascripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
-	<script src="@routes.Assets.at("javascripts/s3index.js")" type="text/javascript"></script>
-	<script src="@routes.Assets.at("javascripts/jquery.MultiFile.pack.js")" type="text/javascript"></script>
-	<script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>
-	<script type="text/javascript">
-    $(document).ready(function() {
-      registerClonable('clonableCustomCSS', 'addCustomCSS', 'delCustomCSS');
-      registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-      registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.generatorPage')
-      registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-      registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.generatorPage')
-      loadProperties('@routes.Application.properties')
-      bindSelectorToPreview($('select[name="template"]'), $("#templatePreview"), {
-          Simple:'@routes.Assets.at("img/template-preview-simple.jpeg")',
-          Slim:'@routes.Assets.at("img/template-preview-slim.jpeg")',
-          Blue:'@routes.Assets.at("img/template-preview-blue.jpeg")',
-          Orange:'@routes.Assets.at("img/template-preview-orange.jpeg")'
+		
+				<hr>
+				<label class="checkbox"><input name="directoriesAreLinks" type="checkbox">Directories are links</label> <label class="checkbox"> <input
+					name="filesAreLinks" type="checkbox">Files are links
+				</label>
+		
+				<hr>
+				<label>Add custom CSS style</label>
+				<div class="clonableCustomCSS">
+					<div class="input-append">
+						<input class="span9" name="customCSS" type="text" value=""> 
+						<a id="delCustomCSS" class="add-on" href="#">&times;</a>
+					</div>
+				</div>
+				<a href="#" id="addCustomCSS"><i class="icon-plus"></i> Add</a>
+		
+				<hr>
+				<a class="btn btn-large" href="#" id="back"><i class="icon-chevron-left"></i> Back</a>
+				<button id="go" type="submit" class="btn btn-large btn-primary">Go <i class="icon-ok icon-white"></i></button>
+			</fieldset>
+		</form>
+  }
+} {
+<script src="@routes.Assets.at("javascripts/jquery-1.8.2.min.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/s3index.js")" type="text/javascript"></script>
+  <script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>
+  <script type="text/javascript">
+      $(document).ready(function() {
+        registerClonable('clonableCustomCSS', 'addCustomCSS', 'delCustomCSS');
+        registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
+        registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.generatorPage')
+        registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
+        registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.generatorPage')
+        loadProperties('@routes.Application.properties')
+        bindSelectorToPreview($('select[name="template"]'), $("#templatePreview"), {
+          Simple : '@routes.Assets.at("img/template-preview-simple.jpeg")',
+          Slim : '@routes.Assets.at("img/template-preview-slim.jpeg")',
+          Blue : '@routes.Assets.at("img/template-preview-blue.jpeg")',
+          Orange : '@routes.Assets.at("img/template-preview-orange.jpeg")'
+        });
+        bindSelectorToPreview($('select[name="fileListFormat"]'), $("#fileListFormatPreview"), {
+          Full : '@routes.Assets.at("img/file-list-format-preview-full.jpg")',
+          Brief : '@routes.Assets.at("img/file-list-format-preview-brief.jpg")'
+        });
       });
-      bindSelectorToPreview($('select[name="fileListFormat"]'), $("#fileListFormatPreview"), {
-        Full:'@routes.Assets.at("img/file-list-format-preview-full.jpg")',
-        Brief:'@routes.Assets.at("img/file-list-format-preview-brief.jpg")'
-      });
-    });
-    
-    function applyProperties(properties) {
-      $('select[name="template"]').val(properties.template)
-      $('select[name="template"]').trigger('change');
-      $('select[name="fileListFormat"]').val(properties.fileListFormat)
-      $('select[name="fileListFormat"]').trigger('change');
-      $('input[name="directoriesAreLinks"]').attr('checked', properties.directoriesAreLinks)
-      $('input[name="filesAreLinks"]').attr('checked', properties.filesAreLinks)
-      for ( var i in properties.customCSS) {
-        clone('clonableCustomCSS', 'delCustomCSS', properties.customCSS[i])
-        $('#customCSS' + i).attr('value', 'test');
+
+      function applyProperties(properties) {
+        $('select[name="template"]').val(properties.template)
+        $('select[name="template"]').trigger('change');
+        $('select[name="fileListFormat"]').val(properties.fileListFormat)
+        $('select[name="fileListFormat"]').trigger('change');
+        $('input[name="directoriesAreLinks"]').attr('checked', properties.directoriesAreLinks)
+        $('input[name="filesAreLinks"]').attr('checked', properties.filesAreLinks)
+        for ( var i in properties.customCSS) {
+          clone('clonableCustomCSS', 'delCustomCSS', properties.customCSS[i])
+          $('#customCSS' + i).attr('value', 'test');
+        }
       }
-    }
-    
-    function bindSelectorToPreview(selector, preview, mapping){
-      selector.change(function () {
-        var newVal = $(this).val();
-        preview.attr('src', mapping[newVal]);
-      });
-    }
-  </script>
-</body>
-</html>
+
+      function bindSelectorToPreview(selector, preview, mapping) {
+        selector.change(function() {
+          var newVal = $(this).val();
+          preview.attr('src', mapping[newVal]);
+        });
+      }
+    </script>
+}

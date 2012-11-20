@@ -68,8 +68,13 @@ object Application extends Controller {
           isLengthInRange("bucketName", 3 to 63).
           isNumber("depthLevel").
           isNumberInRange("depthLevel", 1 to 100).
-          isLengthInRange(parameters.foldLeft(List[String]())((l, p) => if (p._1.matches("excludeKey\\d+")) p._1 :: l else l), 1 to 1024).
-          isLengthInRange(parameters.foldLeft(List[String]())((l, p) => if (p._1.matches("includeKey\\d+")) p._1 :: l else l), 1 to 1024)
+          isLengthInRange("excludeKey", 1 to 1024).
+          isLengthInRange("includeKey", 1 to 1024).
+          oneOf("template", List("Simple", "Slim", "Blue", "Orange")).
+          oneOf("fileListFormat", List("Full", "Brief")).
+          oneOf("outputTo", List("ZipArchive", "Bucket")).
+          isLengthInRange("accessKeyID", 1 to 255).
+          isLengthInRange("secretAccessKey", 1 to 255)
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
         else {
@@ -77,7 +82,7 @@ object Application extends Controller {
           Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
           task.properties.set(Option(taskProperties))
         }
-
+        
         Ok("OK").withSession(
           request.session + ("uuid" -> uuid))
 
