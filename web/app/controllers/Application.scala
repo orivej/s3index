@@ -70,6 +70,7 @@ object Application extends Controller {
           isNumberInRange("depthLevel", 1 to 100).
           isLengthInRange("excludeKey", 1 to 1024).
           isLengthInRange("includeKey", 1 to 1024).
+          isLengthInRange("customCSS", 1 to 1024).
           oneOf("template", List("Simple", "Slim", "Blue", "Orange")).
           oneOf("fileListFormat", List("Full", "Brief")).
           oneOf("outputTo", List("ZipArchive", "Bucket")).

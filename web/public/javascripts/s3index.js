@@ -1,27 +1,29 @@
-function clone(classId, removeButtonId, value) {
-	var clonedElement = $('.' + classId);
-	var first = $('.' + classId + ':first');
-	var last = $('.' + classId + ':last');
-	var num = clonedElement.size() - 1;
-	var newNum = new Number(num + 1);
+function clone(element, container) {
+	var num = container.children().length;
+	var newNum = new Number(num);
 
-	var newElem = first.clone().removeAttr('hidden');
+	var newElem = element.clone();
 	newElem.find('[id]').each(function(index) {
 		$(this).attr('id', $(this).attr('id') + newNum);
 	});
-	newElem.find('[value]').each(function(index) {
-		$(this).attr('value', value);
-	});
-	last.after(newElem.attr('id', classId + newNum));
-	$('#' + removeButtonId + newNum).click(function() {
-		$('#' + classId + newNum).remove();
+	container.append(newElem);
+	$(newElem.find('.clonable-remove-button:first')).click(function() {
+	    newElem.remove();
 	});
 }
 
-function registerClonable(classId, addButtonId, removeButtonId) {
-	$('.' + classId + ':first').attr('hidden', 'true')
-	$('#' + addButtonId).click(function() {
-		clone(classId, removeButtonId, '')
+function registerClonable() {
+	$('.clonable').each(function(index) {
+	    var element = $(this).clone();
+    	var addButton = element.find('.clonable-add-button:first').clone();
+    	element.find('.clonable-add-button:first').remove();
+    	var container = $('<div class="clonable-container"></div>')	
+    	$('.clonable:first').after(addButton);
+    	$('.clonable:first').after(container);
+    	$('.clonable:first').remove();
+    	addButton.click(function() {
+    		clone(element, container)
+    	});
 	});
 }
 

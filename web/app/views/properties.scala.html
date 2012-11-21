@@ -24,25 +24,25 @@
 				<!-- Exclude Keys -->
 				<label>List of keys to exclude</label>
 				<div class="control-group">
-					<div class="clonable-exclude-keys">
+					<div class="clonable">
 						<div class="input-append control-group">
-							<input class="span6" name="excludeKey" type="text" value="dummy">
-							<a id="delExcludeKeyBtn" class="add-on" href="#">&times;</a>
+							<input class="span6" id="excludeKey" name="excludeKey" type="text">
+							<a class="clonable-remove-button add-on" href="#">&times;</a>
 						</div>
-					</div>
-					<a href="#" id="addExcludeKeyBtn"><i class="icon-plus"></i> Add</a>
+						<a href="#" id="excludeKeyAddButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
+					</div>					
 				</div>				
 				<hr />
 				<!-- Include Key -->
 				<label>List of keys to include</label>
 				<div class="control-group">
-					<div class="clonable-include-keys">
+					<div class="clonable">
 						<div class="input-append control-group">
-							<input class="span6" name="includeKey" type="text" value="dummy">
-							<a id="delIncludeKeyBtn" class="add-on" href="#">&times;</a>
+							<input class="span6" id="includeKey" name="includeKey" type="text">
+							<a class="clonable-remove-button add-on" href="#">&times;</a>
 						</div>
+						<a href="#" id="includeKeyAddButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
 					</div>
-					<a href="#" id="addIncludeKeyBtn"><i class="icon-plus"></i> Add</a>
 				</div>				
 				<hr />
 				<div class="control-group">
@@ -73,8 +73,7 @@
   <script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-      registerClonable('clonable-include-keys', 'addIncludeKeyBtn', 'delIncludeKeyBtn');
-      registerClonable('clonable-exclude-keys', 'addExcludeKeyBtn', 'delExcludeKeyBtn');
+      registerClonable();
       registerFormSubmitButton('next', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
       registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.generatorPage')
       registerFormSubmitButton('viewPropertiesPageLink', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
@@ -95,10 +94,12 @@
 	      $('input:radio[name="outputTo"][value="' + properties.outputTo + '"]').trigger('change');
       }
       for ( var i in properties.includeKey) {
-        clone('clonable-include-keys', 'delIncludeKeyBtn', properties.includeKey[i])
+        $('#includeKeyAddButton').trigger('click');
+        $('#includeKey' + i).val(properties.includeKey[i]);
       }
       for ( var i in properties.excludeKey) {
-        clone('clonable-exclude-keys', 'delExcludeKeyBtn', properties.excludeKey[i])
+        $('#excludeKeyAddButton').trigger('click');
+        $('#excludeKey' + i).val(properties.excludeKey[i]);
       }
     }
     

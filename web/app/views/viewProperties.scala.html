@@ -40,13 +40,15 @@
 		
 				<hr>
 				<label>Add custom CSS style</label>
-				<div class="clonableCustomCSS">
-					<div class="input-append">
-						<input class="span9" name="customCSS" type="text" value=""> 
-						<a id="delCustomCSS" class="add-on" href="#">&times;</a>
-					</div>
+				<div class="control-group">
+					<div class="clonable">
+						<div class="input-append">
+							<input class="span9" id="customCSS" name="customCSS" type="text"> 
+							<a class="clonable-remove-button add-on" href="#">&times;</a>
+						</div>
+						<a href="#" id="addCustomCSSButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
+					</div>				
 				</div>
-				<a href="#" id="addCustomCSS"><i class="icon-plus"></i> Add</a>
 		
 				<hr>
 				<a class="btn btn-large" href="#" id="back"><i class="icon-chevron-left"></i> Back</a>
@@ -60,7 +62,7 @@
   <script src="@routes.Assets.at("javascripts/spin.min.js")" type="text/javascript"></script>
   <script type="text/javascript">
       $(document).ready(function() {
-        registerClonable('clonableCustomCSS', 'addCustomCSS', 'delCustomCSS');
+        registerClonable();
         registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
         registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.generatorPage')
         registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
@@ -86,8 +88,8 @@
         $('input[name="directoriesAreLinks"]').attr('checked', properties.directoriesAreLinks)
         $('input[name="filesAreLinks"]').attr('checked', properties.filesAreLinks)
         for ( var i in properties.customCSS) {
-          clone('clonableCustomCSS', 'delCustomCSS', properties.customCSS[i])
-          $('#customCSS' + i).attr('value', 'test');
+          $('#addCustomCSSButton').trigger('click');
+          $('#customCSS' + i).val(properties.customCSS[i]);
         }
       }
 
