@@ -18,6 +18,10 @@ GET     /index/:id                controllers.Application.getIndex(id)
 
 GET     /status                    controllers.Application.status
 
+GET     /styles                    controllers.Application.styles
+
+GET     /style-preview/:styleid   controllers.Application.stylePreview(styleid)
+
 GET     /assets/*file              controllers.Assets.at(path="/public", file)
 
 POST    /properties                controllers.Application.setProperties

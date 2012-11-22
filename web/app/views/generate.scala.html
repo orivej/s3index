@@ -54,9 +54,9 @@
 
     function processGeneratorStatusResponse(status) {
       var isDone = false
-      if (status.status == 0) {
+      if (status.status == 'info') {
         updateStatus('alert alert-info', 'icon-info-sign', status.message, status.percents)
-      } else if (status.status == 1) {
+      } else if (status.status == 'done') {
         if (status.hasOwnProperty('fileId') && status.fileId) {
           var fileUrl = jsRoutes.controllers.Application.getIndex(status.fileId).absoluteURL();
           var message = status.message + '. Your file will be downloaded in a moment. If it won\'t start, please use <a href="' + fileUrl + '">this</a> link.';
@@ -66,7 +66,7 @@
           updateStatus('alert alert-success', 'icon-thumbs-up', status.message, status.percents)
         }
         isDone = true;
-      } else if (status.status == 2) {
+      } else {
         updateStatus('alert alert-error', 'icon-thumbs-down', status.message, status.percents)
         isDone = true;
       }

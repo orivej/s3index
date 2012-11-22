@@ -1,0 +1,44 @@
+table {
+	border-width: 1px;
+	border-style: solid;
+	border-collapse: collapse;
+}
+
+th,td {
+	border-width: 1px;
+	border-style: solid;
+	text-align: left;
+	vertical-align: bottom;
+	padding: 5px;
+}
+
+.file a:link {
+	text-decoration: none;
+}
+
+.dir a:link {
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+.back a:link {
+	text-decoration: none;
+	font-weight: bold;
+}
+
+hr {
+	height: 0px;
+	border: none;
+}
+
+.title {
+	font-size: 24px;
+	font-weight: normal;
+	font-family: "Times New Roman", Times, serif;
+}
+
+.footer {
+	font-size: 12px;
+	font-weight: normal;
+	font-family: "Times New Roman", Times, serif;
+}

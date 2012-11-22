@@ -8,8 +8,16 @@ import play.api.libs.json.Json
 
 case class S3IndexTask(id: String,
     var properties: AtomicReference[Option[Properties]] = new AtomicReference(None),
-    var status: AtomicReference[TaskStatus] = new AtomicReference(new TaskStatus(2, "Please specify your bucket", 0)),
+    var status: AtomicReference[TaskStatus] = new AtomicReference(new TaskStatus(StatusType.error, "Please specify your bucket", 0)),
     var result: Option[Array[Byte]] = None){
+  
+	def updateStatus(newStatus: TaskStatus):Unit = {
+	  this.status.set(newStatus)
+	}
+	
+	def storeResult(result: Array[Byte]): Unit = {
+	  this.result = Option(result)
+	}
 }
 
 object OutputOption extends Enumeration {
@@ -23,12 +31,10 @@ object OutputOption extends Enumeration {
 
 object TemplateStyle extends Enumeration {
      type TemplateStyle = Value
-     val Simple, Slim, Blue, Orange = Value
+     val Simple, Slim = Value
      def fromString(value: String): TemplateStyle = value.trim().toLowerCase() match {
        case "simple" => Simple
-       case "slim" => Slim
-       case "blue" => Blue
-       case _ => Orange
+       case _ => Slim
      }
 }
 

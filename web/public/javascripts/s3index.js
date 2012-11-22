@@ -118,7 +118,6 @@ function loadProperties(url) {
     url : url,
     cache : false,
     success : function(response, textStatus, jqXHR) {
-      console.log("success")
       console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
       applyProperties(jQuery.parseJSON(jqXHR.responseText))
     },

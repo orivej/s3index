@@ -1,0 +1,43 @@
+@(title: String, header: String, footer: String)(data: Seq[Seq[Html]])(css: Seq[String] = List())
+
+<html>
+<head>
+<title>@title</title>
+@for(styleURL <- css){
+  <link rel="stylesheet" media="screen" href="@styleURL">
+}
+</head>
+<body>
+  <div class="title">
+    @header
+  </div>
+	@if(!data.isEmpty){
+	<table>
+		@if(!data(0).isEmpty){
+		<tr>
+		  @for(header <- data(0)){
+			 <th>@header</th>
+			}
+		</tr>
+		}
+		<hr/>
+		@for(row <- data.tail){
+			<tr>
+			 @for(value <- row; if(data(0).length >= row.length)){
+			   <td>@value</td>
+			 }
+			 @for(value <- 0 until (data(0).length - row.length)){
+         <td></td>
+       }
+			</tr>
+		}
+	</table>
+	}
+	<br>
+	<hr>
+	<div class="footer">
+  	@footer
+  </div>
+</body>
+</html>
+

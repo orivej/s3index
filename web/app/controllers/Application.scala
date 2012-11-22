@@ -14,6 +14,9 @@ import java.io.OutputStream
 import java.io.InputStream
 import play.api.libs.iteratee.Enumerator
 import java.io.ByteArrayInputStream
+import play.api.templates.Html
+import java.net.URL
+import java.io.File
 
 object Application extends Controller {
 
@@ -28,13 +31,13 @@ object Application extends Controller {
   def viewPropertiesPage = Action {
     Ok(views.html.viewProperties("Generate index.html for all files in Amazon S3 bucket. Step 2"))
   }
-
+  
   def generatorPage = Action {
     request =>
       val uuid = getOrInitializeUUID(request)
       val bucketProperties = getOrInitializeS3IndexTask(uuid)
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
-      bucketProperties.status.set(bucketProperties.status.get() % 0 info ("Please wait. We will start processing of your bucket shortly"))
+      bucketProperties.updateStatus(TaskStatus.info(0, "Please wait. We will start processing of your bucket shortly"))
       IndexGenerator ! bucketProperties
       Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
   }
@@ -45,6 +48,25 @@ object Application extends Controller {
       val bucketProperties = getOrInitializeS3IndexTask(uuid)
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
       Ok(bucketProperties.status.get().toJSON)
+  }
+  
+  def styles = Action {
+    request =>
+      Ok(Json.toJson(for(style <- TemplateStyle.values) yield {
+        Json.toJson(style.toString())
+      }))
+  }
+  
+  def stylePreview(styleId: String) = Action {
+    request =>
+      val id = styleId.toLowerCase().trim()
+      var styleURL = getClass.getClassLoader().getResource("styles" + File.separator + id + File.separator + "preview.gif")
+      if (styleURL == null) {
+        styleURL = getClass.getClassLoader().getResource("styles/nopreview.gif")
+      }
+      SimpleResult(
+	    header = ResponseHeader(200),
+	    body = Enumerator.fromFile(new File(styleURL.toURI().getPath()))).as("image/gif")
   }
 
   def properties = Action {
@@ -107,7 +129,7 @@ object Application extends Controller {
   def javascriptRoutes = Action { implicit request =>
     import routes.javascript._
     Ok(
-      Routes.javascriptRouter("jsRoutes")(controllers.routes.javascript.Application.getIndex)).as("text/javascript")
+      Routes.javascriptRouter("jsRoutes")(controllers.routes.javascript.Application.getIndex, controllers.routes.javascript.Application.stylePreview)).as("text/javascript")
   }
 
   private def getOrInitializeS3IndexTask(uuid: String): S3IndexTask = {
