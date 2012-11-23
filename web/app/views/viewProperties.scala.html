@@ -18,24 +18,35 @@
 				<label>Select template from drop-down list</label>
 				<div class="controls controls-row">
 					<select name='template' class="span3">
-						
-					</select> <img id='templatePreview' class="img-polaroid span5">
+					</select> 
+					<div class="span5 preview-box">
+					 <img id='templatePreview'>
+					</div>
 				</div>
-				<hr>
 				<label>Select file list format</label>
 				<div class="controls controls-row">
 					<select name='fileListFormat' class="span3">
-						<option>Brief</option>
-						<option>Full</option>
-					</select> <img id='fileListFormatPreview' class="img-polaroid span5">
+					</select>
+					<div id="fileListFormatPreview" class="span6 preview-box"></div>
 				</div>
-		
-				<hr>
-				<label class="checkbox"><input name="directoriesAreLinks" type="checkbox">Directories are links</label> <label class="checkbox"> <input
-					name="filesAreLinks" type="checkbox">Files are links
-				</label>
-		
-				<hr>
+		    <hr/>
+				
+				<div class="control-group">
+				  <label>Title</label>
+				  <input class="span5" name="title" type="text">
+				  
+				</div>
+        
+        <div class="control-group">
+          <label>Header</label>
+          <textarea name="header" rows="3"  class="span5"></textarea> 
+        </div>
+        
+        <div class="control-group">
+          <label>Footer</label>
+          <textarea name="footer" rows="3"  class="span5"></textarea>
+        </div>
+		    <hr/>
 				<label>Add custom CSS style</label>
 				<div class="control-group">
 					<div class="clonable">
@@ -66,52 +77,35 @@
         registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
         registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.generatorPage')
         loadProperties('@routes.Application.properties')
-        loadStyles($('select[name="template"]'), $("#templatePreview"));
-        bindSelectorToPreview($('select[name="fileListFormat"]'), $("#fileListFormatPreview"), {
-          Full : '@routes.Assets.at("img/file-list-format-preview-full.jpg")',
-          Brief : '@routes.Assets.at("img/file-list-format-preview-brief.jpg")'
-        });
       });
 
       function applyProperties(properties) {
+        for (var i in properties.styles) {
+          $('select[name="template"]').append('<option>' + properties.styles[i] + '</option>')
+        }
+        $('select[name="template"]').change(function() {
+          var newVal = $(this).val();
+          $("#templatePreview").attr('src', jsRoutes.controllers.Application.stylePreview(newVal).absoluteURL());
+        });
+        for (var key in properties.fileListFormats) {
+          $('select[name="fileListFormat"]').append('<option>' + key + '</option>')
+        }
+        $('select[name="fileListFormat"]').change(function() {
+          var newVal = $(this).val();
+          $("#fileListFormatPreview").html(properties.fileListFormats[newVal]);
+        });
         $('select[name="template"]').val(properties.template)
         $('select[name="template"]').trigger('change');
         $('select[name="fileListFormat"]').val(properties.fileListFormat)
         $('select[name="fileListFormat"]').trigger('change');
-        $('input[name="directoriesAreLinks"]').attr('checked', properties.directoriesAreLinks)
-        $('input[name="filesAreLinks"]').attr('checked', properties.filesAreLinks)
+        $('input[name="title"]').val(properties.title)
+        $('textarea[name="header"]').val(properties.header)
+        $('textarea[name="footer"]').val(properties.footer)
         for ( var i in properties.customCSS) {
           $('#addCustomCSSButton').trigger('click');
           $('#customCSS' + i).val(properties.customCSS[i]);
         }
       }
       
-      function loadStyles(selector, preview){
-        $.ajax({
-          url : '@routes.Application.styles',
-          cache : false,
-          success : function(response, textStatus, jqXHR) {
-            console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
-            var json = jQuery.parseJSON(jqXHR.responseText)
-            jQuery.each(json, function(index, itemData) {
-              selector.append('<option>' + itemData + '</option>')
-            });
-          },
-          error : function(jqXHR, textStatus, errorThrown) {
-            console.log("Error: Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
-          }
-        });
-        selector.change(function() {
-          var newVal = $(this).val();
-          preview.attr('src', jsRoutes.controllers.Application.stylePreview(newVal).absoluteURL());
-        });
-      }
-
-      function bindSelectorToPreview(selector, preview, mapping) {
-        selector.change(function() {
-          var newVal = $(this).val();
-          preview.attr('src', mapping[newVal]);
-        });
-      }
     </script>
 }

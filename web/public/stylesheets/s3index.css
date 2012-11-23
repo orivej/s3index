@@ -104,3 +104,14 @@ footer {
 	float: right;
 	padding-top: 15px;
 }
+
+.preview-box {
+	border-width: 1px;
+  border-style: solid;
+  border-color: lightgray;
+  text-align: center;
+  padding: 2px;
+  font-weight: bold;
+  max-height: 150px;
+  max-width: 300px;
+}

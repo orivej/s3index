@@ -12,6 +12,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream
 import java.util.zip.ZipEntry
 import play.api.templates.Html
 import org.apache.commons.io.FileUtils
+import scala.util.matching.Regex
 
 object IndexGenerator extends Actor {
 
@@ -55,38 +56,45 @@ object IndexGenerator extends Actor {
     }
   }
 
-  def generateIndex(s3: SimpleS3, bucket: String, root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, cssLinks: Seq[String], objectsDone: Int = 0, objectsLeft: Int = 1): Unit = {
-    val indexName = root.name + INDEXFILE
-
-    val template = views.html.index("S3: s3index/2012-01-10", "Index of s3index/2012-01-10", "Generated with S3Index")(_)
-
-    val directories = for (g <- root.keyGroups) yield {
-      val name = g.name.substring(root.name.size)
-      List(Html("""<div class="dir"><a href="%s">%s</a></div>""".format(name, name)))
-    }
-
-    val files = for (k <- root.keys if (indexName != k.name)) yield {
-      val name = k.name.substring(root.name.size)
-      List(Html("""<div class="file"><a href="%s">%s</a></div>""".format(name, name)), Html(k.lastModified), Html(k.objectSize.toString))
-    }
-
-    val data = Array(List(Html("Name"), Html("Date"), Html("Size"))) ++ directories ++ files
-
-    val indexData = template(data)(cssLinks).toString
-    val bytes = indexData.getBytes("UTF-8")
-
-    outputFunction(indexName, bytes)
-
-    val percents = ((objectsDone.toFloat / objectsLeft.toFloat) * 100).toInt
-
-    status(TaskStatus.info(percents, "Processing keys with prefix %s".format(if (root.name.isEmpty()) "/" else root.name)))
-
-    var counter = objectsDone
-    for (g <- root.keyGroups) {
-      generateIndex(s3, bucket, g, outputFunction, status, cssLinks, (counter), objectsLeft * root.groupsNumber)
-      counter += 1
-    }
-
+  def generateIndex(root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, properties: Properties): Unit = {
+	  def generateIndex(root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, template: (Seq[Seq[Html]]) => Html, include: (String) => Boolean, keysFormatter: (Option[(KeysTree, Key)]) => List[Html], objectsDone: Int, objectsLeft: Int): Unit = {
+	    val indexName = root.name + INDEXFILE
+	    
+	    val header = Array(keysFormatter(None))
+	    
+	    val parentLink = Array(List(Html("""<div class="back"><a href="..">..</a></div>""")))
+	
+	    val directories = for (g <- root.keyGroups if(include(g.name)) ) yield {
+	      val name = g.name.substring(root.name.size)
+	      List(Html("""<div class="dir"><a href="%s">%s</a></div>""".format(name, name)))
+	    }
+	
+	    val files = for (k <- root.keys if(include(k.name))) yield {
+	      keysFormatter(Option((root, k)))
+	    }
+	
+	    val data = header ++ parentLink ++ directories ++ files
+	
+	    val indexData = template(data).toString
+	    val bytes = indexData.getBytes("UTF-8")
+	
+	    outputFunction(indexName, bytes)
+	
+	    val percents = ((objectsDone.toFloat / objectsLeft.toFloat) * 100).toInt
+	
+	    status(TaskStatus.info(percents, "Processing keys with prefix %s".format(if (root.name.isEmpty()) "/" else root.name)))
+	
+	    var counter = objectsDone
+	    for (g <- root.keyGroups) {
+	      generateIndex(g, outputFunction, status, template, include, keysFormatter, counter, objectsLeft * root.groupsNumber)
+	      counter += 1
+	    }
+	  }
+	  val cssStyleLinks = "/css/%s.css".format(properties.template.toString().toLowerCase()) :: properties.customCSS.toList
+	  val template = views.html.index(properties.header, properties.header, properties.footer, cssStyleLinks)(_)
+	  val filter = keysFilter(properties.includedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l),
+	      properties.excludedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l))(_)
+	  generateIndex(root, outputFunction, status, template, filter, FileListFormat.toHtml(properties.fileListFormat)(_), 0, 1)
   }
 
   def generateIndexToArchive(taskId: String, s3: SimpleS3, properties: Properties, status: (TaskStatus) => Unit, storeResult: (Array[Byte]) => Unit) {
@@ -94,9 +102,8 @@ object IndexGenerator extends Actor {
     val outputStream = new ZipOutputStream(result)
     val outputFunction = toArchive(outputStream)(_, _)    
     addStyleTo(properties.template.toString().toLowerCase(), outputFunction)
-    val cssStyleLinks = "/css/%s.css".format(properties.template.toString().toLowerCase()) :: properties.customCSS.toList
     
-    generateIndex(s3, properties.name, s3.bucket(properties.name).list(), outputFunction, status, cssStyleLinks)
+    generateIndex(s3.bucket(properties.name).list(), outputFunction, status, properties)
     outputStream.close()
     storeResult(result.toByteArray())
     status(TaskStatus.done("Done", taskId))
@@ -106,8 +113,8 @@ object IndexGenerator extends Actor {
     val result = new ByteArrayOutputStream();
     val outputFunction = toBucket(s3, s3.bucket(properties.name))(_, _)
     addStyleTo(properties.template.toString().toLowerCase(), outputFunction)
-    val cssStyleLinks = "/css/%s.css".format(properties.template.toString().toLowerCase()) :: properties.customCSS.toList
-    generateIndex(s3, properties.name, s3.bucket(properties.name).list(), outputFunction, status, cssStyleLinks)
+    
+    generateIndex(s3.bucket(properties.name).list(), outputFunction, status, properties)
     status(TaskStatus.done("Done"))
   }
   
@@ -139,5 +146,15 @@ object IndexGenerator extends Actor {
       Logger.warn("Could not find style %s in classpath".format(styleId))
     }
   }
-
+  
+  def keysFilter(include: Seq[Regex], exclude: Seq[Regex])(name: String): Boolean = {
+    val r = if(!include.isEmpty){
+    	include.exists(i => i.pattern.matcher(name).matches())
+    } else (if(!exclude.isEmpty){
+      !exclude.exists(e => e.pattern.matcher(name).matches())
+    } else true)
+    Logger.debug("keysFilter In -> %s, Out -> %s".format(name, r.toString()))
+    r
+  }
+  
 }

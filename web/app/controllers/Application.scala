@@ -17,6 +17,9 @@ import java.io.ByteArrayInputStream
 import play.api.templates.Html
 import java.net.URL
 import java.io.File
+import com.codeminders.s3simpleclient.model.Key
+import com.codeminders.s3simpleclient.SimpleS3
+import com.codeminders.s3simpleclient.model.Bucket
 
 object Application extends Controller {
 
@@ -50,13 +53,6 @@ object Application extends Controller {
       Ok(bucketProperties.status.get().toJSON)
   }
   
-  def styles = Action {
-    request =>
-      Ok(Json.toJson(for(style <- TemplateStyle.values) yield {
-        Json.toJson(style.toString())
-      }))
-  }
-  
   def stylePreview(styleId: String) = Action {
     request =>
       val id = styleId.toLowerCase().trim()
@@ -68,7 +64,7 @@ object Application extends Controller {
 	    header = ResponseHeader(200),
 	    body = Enumerator.fromFile(new File(styleURL.toURI().getPath()))).as("image/gif")
   }
-
+  
   def properties = Action {
     implicit request =>
       val uuid = getOrInitializeUUID(request)

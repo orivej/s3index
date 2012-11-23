@@ -27,7 +27,7 @@ class Key(val client: HTTPClient, val bucket: Bucket, val name: String) {
   var userMetadata: scala.collection.mutable.Map[String, String] = scala.collection.mutable.HashMap()
 
   var owner: Owner = new Owner("", "")
-
+  
   def <<<(data: InputStream, length: Long) {
     val req = url("http://s3.amazonaws.com/%s/%s".format(bucket.name, name)).PUT.copy(
       body = Some(new org.apache.http.entity.InputStreamEntity(data, length))) <:< Map(("Content-Type", contentType), ("x-amz-acl", acl))

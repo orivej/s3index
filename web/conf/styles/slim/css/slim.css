@@ -10,7 +10,7 @@ th,td {
 }
 
 .file {
-	background-image: url('/assets/img/file.gif');
+	background-image: url('/img/file.gif');
 	background-repeat: no-repeat;
 	padding-left: 25px;
 	padding-top: 2px;
@@ -18,7 +18,7 @@ th,td {
 }
 
 .dir {
-	background-image: url('/assets/img/folder.gif');
+	background-image: url('/img/folder.gif');
 	background-repeat: no-repeat;
 	padding-left: 25px;
 	padding-top: 2px;
@@ -26,7 +26,7 @@ th,td {
 }
 
 .back {
-  background-image: url('/assets/img/back.gif');
+  background-image: url('/img/back.gif');
   background-repeat: no-repeat;
   padding-left: 25px;
   padding-top: 2px;
