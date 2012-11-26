@@ -20,6 +20,7 @@ import java.io.File
 import com.codeminders.s3simpleclient.model.Key
 import com.codeminders.s3simpleclient.SimpleS3
 import com.codeminders.s3simpleclient.model.Bucket
+import org.apache.commons.io.FileUtils
 
 object Application extends Controller {
 
@@ -55,21 +56,24 @@ object Application extends Controller {
   
   def stylePreview(styleId: String) = Action {
     request =>
-      val id = styleId.toLowerCase().trim()
-      var styleURL = getClass.getClassLoader().getResource("styles" + File.separator + id + File.separator + "preview.gif")
-      if (styleURL == null) {
-        styleURL = getClass.getClassLoader().getResource("styles/nopreview.gif")
+      val image = Cache.getOrElse[Array[Byte]](styleId) {
+	      val id = styleId.toLowerCase().trim()
+	      var styleURL = getClass.getClassLoader().getResource("styles" + File.separator + id + File.separator + "preview.gif")
+	      if (styleURL == null) {
+	        styleURL = getClass.getClassLoader().getResource("styles/nopreview.gif")
+	      }
+	      FileUtils.readFileToByteArray(new File(styleURL.toURI().getPath()))
       }
       SimpleResult(
 	    header = ResponseHeader(200),
-	    body = Enumerator.fromFile(new File(styleURL.toURI().getPath()))).as("image/gif")
+	    body = Enumerator.fromStream(new ByteArrayInputStream(image))).as("image/gif")
   }
   
   def properties = Action {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val task = getOrInitializeS3IndexTask(uuid)
-      val taskProperties = task.properties.get().getOrElse(new Properties(""))
+      val taskProperties = task.properties.get().getOrElse(new Properties(Play.application.configuration))
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
 
       Ok(taskProperties.toJSON())
@@ -97,7 +101,7 @@ object Application extends Controller {
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
         else {
-          val taskProperties = validator.toProperties(task.properties.get().getOrElse(new Properties("")))
+          val taskProperties = task.properties.get().getOrElse(new Properties(Play.application.configuration)).updateProperties(parameters)
           Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
           task.properties.set(Option(taskProperties))
         }
@@ -111,6 +115,8 @@ object Application extends Controller {
         }
       }
   }
+  
+  
 
   def getIndex(id: String) = Action {
     request =>
@@ -128,7 +134,7 @@ object Application extends Controller {
       Routes.javascriptRouter("jsRoutes")(controllers.routes.javascript.Application.getIndex, controllers.routes.javascript.Application.stylePreview)).as("text/javascript")
   }
 
-  private def getOrInitializeS3IndexTask(uuid: String): S3IndexTask = {
+  private def getOrInitializeS3IndexTask(uuid: String)(implicit application: play.api.Application): S3IndexTask = {
     Cache.getOrElse[S3IndexTask](uuid + ".bucket.properties") {
       new S3IndexTask(uuid)
     }

@@ -2,6 +2,13 @@ import play.api._
 import play.api.mvc.Results._
 import model.IndexGenerator
 import play.api.mvc.RequestHeader
+import java.net.URLStreamHandler
+import java.net.URL
+import java.net.URLConnection
+import java.net.URLStreamHandlerFactory
+import scala.collection.mutable.Map
+import java.security.Security
+import java.lang.reflect.Method
 
 object Global extends GlobalSettings {
   

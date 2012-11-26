@@ -57,7 +57,7 @@ object IndexGenerator extends Actor {
   }
 
   def generateIndex(root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, properties: Properties): Unit = {
-	  def generateIndex(root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, template: (Seq[Seq[Html]]) => Html, include: (String) => Boolean, keysFormatter: (Option[(KeysTree, Key)]) => List[Html], objectsDone: Int, objectsLeft: Int): Unit = {
+	  def generateIndex(root: KeysTree, outputFunction: (String, Array[Byte]) => Unit, status: (TaskStatus) => Unit, template: (String, Seq[Seq[Html]]) => Html, include: (String) => Boolean, keysFormatter: (Option[(KeysTree, Key)]) => List[Html], objectsDone: Int, objectsLeft: Int): Unit = {
 	    val indexName = root.name + INDEXFILE
 	    
 	    val header = Array(keysFormatter(None))
@@ -75,7 +75,7 @@ object IndexGenerator extends Actor {
 	
 	    val data = header ++ parentLink ++ directories ++ files
 	
-	    val indexData = template(data).toString
+	    val indexData = template(if (root.name.isEmpty()) "/" else root.name, data).toString
 	    val bytes = indexData.getBytes("UTF-8")
 	
 	    outputFunction(indexName, bytes)
@@ -91,7 +91,7 @@ object IndexGenerator extends Actor {
 	    }
 	  }
 	  val cssStyleLinks = "/css/%s.css".format(properties.template.toString().toLowerCase()) :: properties.customCSS.toList
-	  val template = views.html.index(properties.header, properties.header, properties.footer, cssStyleLinks)(_)
+	  val template = views.html.index(properties.title, properties.header, Html(properties.footer), cssStyleLinks)(_, _)
 	  val filter = keysFilter(properties.includedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l),
 	      properties.excludedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l))(_)
 	  generateIndex(root, outputFunction, status, template, filter, FileListFormat.toHtml(properties.fileListFormat)(_), 0, 1)
@@ -101,8 +101,7 @@ object IndexGenerator extends Actor {
     val result = new ByteArrayOutputStream();
     val outputStream = new ZipOutputStream(result)
     val outputFunction = toArchive(outputStream)(_, _)    
-    addStyleTo(properties.template.toString().toLowerCase(), outputFunction)
-    
+    Utils.copyStyleTo(properties.stylesLocation, properties.template.toString().toLowerCase(), outputFunction)
     generateIndex(s3.bucket(properties.name).list(), outputFunction, status, properties)
     outputStream.close()
     storeResult(result.toByteArray())
@@ -112,8 +111,7 @@ object IndexGenerator extends Actor {
   def generateIndexToBucket(taskId: String, s3: SimpleS3, properties: Properties, status: (TaskStatus) => Unit, storeResult: (Array[Byte]) => Unit) {
     val result = new ByteArrayOutputStream();
     val outputFunction = toBucket(s3, s3.bucket(properties.name))(_, _)
-    addStyleTo(properties.template.toString().toLowerCase(), outputFunction)
-    
+    Utils.copyStyleTo(properties.stylesLocation, properties.template.toString().toLowerCase(), outputFunction)
     generateIndex(s3.bucket(properties.name).list(), outputFunction, status, properties)
     status(TaskStatus.done("Done"))
   }
@@ -129,29 +127,11 @@ object IndexGenerator extends Actor {
     key <<< (new ByteArrayInputStream(data), data.length)
   }
 
-  def addStyleTo(styleId: String, to: (String, Array[Byte]) => Unit) {
-    def recursiveListFiles(f: File): Array[File] = {
-      val list = f.listFiles
-      list.filter(!_.isDirectory) ++ list.filter(_.isDirectory).flatMap(recursiveListFiles)
-    }
-    val styleFolderURL = getClass.getClassLoader().getResource("styles" + File.separator + styleId)
-    if (styleFolderURL != null) {
-      val styleLocation = styleFolderURL.toURI().getPath()
-      for (styleResource <- recursiveListFiles(new File(styleFolderURL.toURI()))) {
-        val data = FileUtils.readFileToByteArray(styleResource)
-        val key = styleResource.getPath().substring(styleLocation.length() + 1)
-        to(key, data)
-      }
-    } else {
-      Logger.warn("Could not find style %s in classpath".format(styleId))
-    }
-  }
-  
-  def keysFilter(include: Seq[Regex], exclude: Seq[Regex])(name: String): Boolean = {
-    val r = if(!include.isEmpty){
-    	include.exists(i => i.pattern.matcher(name).matches())
-    } else (if(!exclude.isEmpty){
-      !exclude.exists(e => e.pattern.matcher(name).matches())
+  def keysFilter(includedKeys: Seq[Regex], excludedKeys: Seq[Regex])(name: String): Boolean = {
+    val r = if(!includedKeys.isEmpty){
+    	includedKeys.exists(i => i.pattern.matcher(name).matches())
+    } else (if(!excludedKeys.isEmpty){
+      !excludedKeys.exists(e => e.pattern.matcher(name).matches())
     } else true)
     Logger.debug("keysFilter In -> %s, Out -> %s".format(name, r.toString()))
     r

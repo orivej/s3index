@@ -1,15 +1,15 @@
-@(title: String, header: String, footer: String, css: Seq[String] = List())(data: Seq[Seq[Html]])
+@(title: String, header: String, footer: Html, css: Seq[String] = List())(directory: String, data: Seq[Seq[Html]])
 
 <html>
 <head>
-<title>@title</title>
+<title>@title.replaceAllLiterally("@directory", directory)</title>
 @for(styleURL <- css){
   <link rel="stylesheet" media="screen" href="@styleURL">
 }
 </head>
 <body>
   <div class="title">
-    @header
+    @Html(header.replaceAllLiterally("@directory", directory))
   </div>
 	@if(!data.isEmpty){
 	<table>

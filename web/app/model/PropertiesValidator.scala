@@ -48,22 +48,6 @@ class PropertiesValidator(properties: Map[String, Seq[String]], errors: List[Map
     })
   }
   
-  def toProperties(current: Properties): Properties = {
-      val name = if (properties.contains("bucketName")) properties.get("bucketName").get(0) else current.name
-      val credentials = if(properties.contains("accessKeyID") && !properties("accessKeyID")(0).isEmpty && properties.contains("secretAccessKey") && !properties("secretAccessKey")(0).isEmpty)
-          Option(new AWSCredentials(properties("accessKeyID")(0), properties("secretAccessKey")(0))) else current.credentials
-      val outputOption = if (properties.contains("outputTo") && !properties.get("outputTo").isEmpty && !properties.get("outputTo").get(0).isEmpty) OutputOption.withName(properties.get("outputTo").get(0)) else current.outputOption
-      val includedPaths = if (properties.contains("includeKey")) properties.get("includeKey").get.filter(!_.isEmpty()).toSet[String] else current.includedPaths
-      val excludedPaths = if (properties.contains("excludeKey")) properties.get("excludeKey").get.filter(!_.isEmpty()).toSet[String] else current.excludedPaths
-      val template = if (properties.contains("template")) TemplateStyle.withName(properties.get("template").get(0)) else current.template
-      val fileListFormat = if (properties.contains("fileListFormat")) FileListFormat.withName(properties.get("fileListFormat").get(0)) else current.fileListFormat
-      val footer = if (properties.contains("footer") && !properties.get("footer").isEmpty && !properties.get("footer").get(0).isEmpty) properties.get("footer").get(0) else current.footer
-      val title = if (properties.contains("title") && !properties.get("title").isEmpty && !properties.get("title").get(0).isEmpty) properties.get("title").get(0) else current.title
-      val header = if (properties.contains("header") && !properties.get("header").isEmpty && !properties.get("header").get(0).isEmpty) properties.get("header").get(0) else current.header
-      val customCSS = if (properties.contains("customCSS")) properties.get("customCSS").get.filter(!_.isEmpty()).toSet[String] else current.customCSS
-	  Properties(name, credentials, outputOption, excludedPaths, includedPaths, template, fileListFormat, title, header, footer, customCSS)
-  }
-  
   private def parseBoolean(value: String): Boolean = {
     val numberFormar = """[\d]+""".r
     value.toLowerCase().trim() match {

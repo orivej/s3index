@@ -112,6 +112,11 @@ footer {
   text-align: center;
   padding: 2px;
   font-weight: bold;
-  max-height: 150px;
+  max-height: 200px;
   max-width: 300px;
+}
+
+.preview-box img {
+	max-height: 195px;
+  max-width: 290px;
 }
