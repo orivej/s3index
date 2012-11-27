@@ -1,6 +1,6 @@
 import play.api._
 import play.api.mvc.Results._
-import model.IndexGenerator
+import model.S3IndexersPool
 import play.api.mvc.RequestHeader
 import java.net.URLStreamHandler
 import java.net.URL
@@ -14,8 +14,12 @@ object Global extends GlobalSettings {
   
   override def onStart(app: Application) {
     Logger.info("S3Index started")
-    Logger.info("Starting " + IndexGenerator.getClass().getName() + "...")
-    IndexGenerator.start
+    Logger.info("Starting " + S3IndexersPool.getClass().getName() + "...")
+    val indexersNumber = Play.application(app).configuration.getInt("s3index.indexers.number") match {
+      case None => 4
+      case Some(n) => n
+    }
+    S3IndexersPool.start(indexersNumber)
   }  
   
   override def onStop(app: Application) {

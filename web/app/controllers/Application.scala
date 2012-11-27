@@ -42,7 +42,7 @@ object Application extends Controller {
       val bucketProperties = getOrInitializeS3IndexTask(uuid)
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
       bucketProperties.updateStatus(TaskStatus.info(0, "Please wait. We will start processing of your bucket shortly"))
-      IndexGenerator ! bucketProperties
+      S3IndexersPool ! bucketProperties
       Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
   }
 

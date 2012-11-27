@@ -14,12 +14,12 @@ import play.api.templates.Html
 import org.apache.commons.io.FileUtils
 import scala.util.matching.Regex
 
-object IndexGenerator extends Actor {
-
+class S3Indexer extends Actor {
+  
   val INDEXFILE = "index.html"
 
   def act() {
-    Logger.info(this.getClass().getName() + " started.")
+    Logger.info(S3Indexer.this.getClass().getName() + " started.")
     loop {
       react {
         case t: S3IndexTask =>
@@ -64,7 +64,7 @@ object IndexGenerator extends Actor {
 	    
 	    val parentLink = Array(List(Html("""<div class="back"><a href="..">..</a></div>""")))
 	
-	    val directories = for (g <- root.keyGroups if(include(g.name)) ) yield {
+	    val directories = for (g <- root.keyGroups if(include(g.name))) yield {
 	      val name = g.name.substring(root.name.size)
 	      List(Html("""<div class="dir"><a href="%s">%s</a></div>""".format(name, name)))
 	    }
@@ -85,15 +85,15 @@ object IndexGenerator extends Actor {
 	    status(TaskStatus.info(percents, "Processing keys with prefix %s".format(if (root.name.isEmpty()) "/" else root.name)))
 	
 	    var counter = objectsDone
-	    for (g <- root.keyGroups) {
+	    for (g <- root.keyGroups) yield {
 	      generateIndex(g, outputFunction, status, template, include, keysFormatter, counter, objectsLeft * root.groupsNumber)
 	      counter += 1
 	    }
 	  }
 	  val cssStyleLinks = "/css/%s.css".format(properties.template.toString().toLowerCase()) :: properties.customCSS.toList
-	  val template = views.html.index(properties.title, properties.header, Html(properties.footer), cssStyleLinks)(_, _)
-	  val filter = keysFilter(properties.includedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l),
-	      properties.excludedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l))(_)
+          val template = views.html.index(properties.title, properties.header, Html(properties.footer), cssStyleLinks)(_, _)
+          val filter = keysFilter(properties.includedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l),
+              properties.excludedPaths.foldLeft(List[Regex]())((l, p) => Utils.globe2Regexp(p) :: l))(_)
 	  generateIndex(root, outputFunction, status, template, filter, FileListFormat.toHtml(properties.fileListFormat)(_), 0, 1)
   }
 
@@ -124,17 +124,13 @@ object IndexGenerator extends Actor {
 
   def toBucket(s3: SimpleS3, bucket: Bucket)(keyName: String, data: Array[Byte]) {
     val key = bucket.key(keyName).withACL("public-read").withContentType("text/html; charset=UTF-8")
-    key <<< (new ByteArrayInputStream(data), data.length)
+    key <<< (new ByteArrayInputStream(data), data length)
   }
 
   def keysFilter(includedKeys: Seq[Regex], excludedKeys: Seq[Regex])(name: String): Boolean = {
-    val r = if(!includedKeys.isEmpty){
-    	includedKeys.exists(i => i.pattern.matcher(name).matches())
-    } else (if(!excludedKeys.isEmpty){
-      !excludedKeys.exists(e => e.pattern.matcher(name).matches())
-    } else true)
-    Logger.debug("keysFilter In -> %s, Out -> %s".format(name, r.toString()))
-    r
+    if(!includedKeys.isEmpty){
+    	includedKeys.exists(i => i.pattern.matcher(name).matches()) 
+    } else true && !excludedKeys.exists(e => e.pattern.matcher(name).matches())
   }
   
 }
