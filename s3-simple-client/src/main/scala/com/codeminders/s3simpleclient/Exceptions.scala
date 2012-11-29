@@ -18,6 +18,7 @@ object AmazonServiceException{
   def apply(statusCode: Int, xml: Elem): AmazonServiceException = {
     xml \ "Code" head match {
       case <Code>NoSuchBucket</Code> => new NoSuchBucketException(xml)
+      case _ => new AmazonServiceException(statusCode, xml)
     }
   }
 }
