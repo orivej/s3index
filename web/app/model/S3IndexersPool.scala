@@ -3,12 +3,13 @@ package model
 import scala.actors.Actor
 import play.api.Logger
 import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable.Queue
 
 object S3IndexersPool extends Actor {
   
-  private val indexers: ArrayBuffer[S3Indexer] = new ArrayBuffer(1)
+  private val tasks: Queue[S3IndexTask] = Queue()
   
-  private var currentIndexer = 0 
+  private val indexers: ArrayBuffer[S3Indexer] = new ArrayBuffer(1)
   
   override def start(): Actor = {
     start(4)
@@ -17,7 +18,7 @@ object S3IndexersPool extends Actor {
   def start(numberOfIndexers: Int): Actor = {
     Logger.info("Launching %d S3 indexers.".format(numberOfIndexers))
     for (i <- (0 until numberOfIndexers)){
-      indexers += new S3Indexer()
+      indexers += new S3Indexer(i.toString())
       indexers(i).start()
     }
     super.start
@@ -28,9 +29,12 @@ object S3IndexersPool extends Actor {
 	  loop {
 	    react {
 	    	case t: S3IndexTask =>
-	    	  Logger.info("Scheduling %s to indexer #%d.".format(t.id, currentIndexer))
-	    	  indexers(currentIndexer) ! t
-	    	  currentIndexer = (currentIndexer + 1) % indexers.length
+	    	  Logger.info("Scheduling %s.".format(t.id))
+	    	  tasks += t
+	    	  if(tasks.size > 1) Logger.info("There are %d queued tasks.".format(tasks.size))
+	    	  indexers.foreach(_ ! "newTask")
+	    	case "getTask" =>
+	    	  if(!tasks.isEmpty) sender ! tasks.dequeue
 	    }
 	
 	  }

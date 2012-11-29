@@ -9,6 +9,7 @@ import java.net.URLStreamHandlerFactory
 import scala.collection.mutable.Map
 import java.security.Security
 import java.lang.reflect.Method
+import scala.math._
 
 object Global extends GlobalSettings {
   
@@ -17,7 +18,7 @@ object Global extends GlobalSettings {
     Logger.info("Starting " + S3IndexersPool.getClass().getName() + "...")
     val indexersNumber = Play.application(app).configuration.getInt("s3index.indexers.number") match {
       case None => 4
-      case Some(n) => n
+      case Some(n) => max(1, min(n, Runtime.getRuntime().availableProcessors() * 2))
     }
     S3IndexersPool.start(indexersNumber)
   }  

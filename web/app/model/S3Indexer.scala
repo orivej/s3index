@@ -14,16 +14,19 @@ import play.api.templates.Html
 import org.apache.commons.io.FileUtils
 import scala.util.matching.Regex
 
-class S3Indexer extends Actor {
+class S3Indexer(indexerId: String) extends Actor {
   
   val INDEXFILE = "index.html"
 
   def act() {
-    Logger.info(S3Indexer.this.getClass().getName() + " started.")
+    Logger.debug("%s:%s started.".format(this.getClass().getName(), indexerId))
     loop {
       react {
+        case "newTask" =>
+          sender ! "getTask"
         case t: S3IndexTask =>
           try {
+            Logger.debug("%s:%s: processing %s.".format(this.getClass().getName(), indexerId, t.id))
             if (t.properties.get() == None) {
               Logger.info("Got an empty task with id %s.".format(t.id))
               t.updateStatus(TaskStatus.error("Please set bucket name"))
@@ -31,7 +34,7 @@ class S3Indexer extends Actor {
               val properties = t.properties.get().get
               if (properties.name.isEmpty()) {
                 t.updateStatus(TaskStatus.error("Please set bucket name"))
-                Logger.debug("Won't process - empty bucket name")
+                Logger.info("Won't process - empty bucket name")
               } else {
                 val s3 = properties.credentials match {
                   case None => SimpleS3()
