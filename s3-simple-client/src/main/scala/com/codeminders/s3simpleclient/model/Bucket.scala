@@ -38,14 +38,13 @@ class Bucket(val client: HTTPClient, val name: String) {
 
 class KeysTree(val client: HTTPClient, val name: String, val bucket: Bucket, prefix: String = "", delimiter: String = "/")  extends Traversable[Key] {
   
-  val (keys, commonPrefexes) = bucket.getBucket(prefix, delimiter)
+  lazy val (keys, commonPrefexes) = bucket.getBucket(prefix, delimiter)
   
-  //TODO: Memoized
-  def keyGroups = commonPrefexes map { 
+  lazy val keyGroups = commonPrefexes map { 
     (e => new KeysTree(client, e, bucket, e, delimiter)) 
   }
   
-  def keysNumber = keys.size
+  lazy val keysNumber = keys.size
   
   def foreach[U](f: Key => U) = {
     keys.foreach(f)
@@ -54,6 +53,6 @@ class KeysTree(val client: HTTPClient, val name: String, val bucket: Bucket, pre
     }
   }
   
-  def groupsNumber = keyGroups.size
+  lazy val groupsNumber = keyGroups.size
   
 }
