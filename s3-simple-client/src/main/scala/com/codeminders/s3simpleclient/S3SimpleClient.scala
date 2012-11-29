@@ -19,7 +19,7 @@ trait HTTPClient {
   }
   
   def handleException(e: Throwable): Unit = e match {
-    case s: StatusCode => throw AmazonServiceException(s.code, XML.loadString(s.contents))
+    case s: StatusCode => throw new AmazonServiceException(s.code, XML.loadString(s.contents))
     case _ => throw e
   } 
   

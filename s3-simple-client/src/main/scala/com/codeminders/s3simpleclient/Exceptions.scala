@@ -2,13 +2,9 @@ package com.codeminders.s3simpleclient
 
 import scala.xml._
 
-case class AmazonServiceException(statusCode: Int, errorCode: String, message: String, resource: String, requestId: String) extends RuntimeException(message) {
-  
+class AmazonServiceException(val statusCode: Int, xml: Elem) extends Exception("%d: %s".format(statusCode, xml.toString)) {
+  lazy val errorCode = xml \ "Code" text
+  lazy val message = xml \ "Message" text
+  lazy val resource = xml \ "Resource" text
+  lazy val requestId = xml \ "RequestId" text
 }
-
-object AmazonServiceException {
-  def apply(statusCode: Int, xml: Elem): AmazonServiceException = {
-    AmazonServiceException(statusCode, xml \ "Code" text, xml \ "Message" text, xml \ "Resource" text, xml \ "RequestId" text)
-  }
-}
-

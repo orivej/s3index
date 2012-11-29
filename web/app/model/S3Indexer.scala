@@ -13,6 +13,7 @@ import java.util.zip.ZipEntry
 import play.api.templates.Html
 import org.apache.commons.io.FileUtils
 import scala.util.matching.Regex
+import com.codeminders.s3simpleclient._
 
 class S3Indexer(indexerId: String) extends Actor {
   
@@ -50,9 +51,13 @@ class S3Indexer(indexerId: String) extends Actor {
               }
             }
           } catch {
+            case e: AmazonServiceException => {
+              Logger.warn(e.getMessage(), e)
+              t.updateStatus(TaskStatus.error("%s: %s".format(e.errorCode, e.message)))
+            }
             case e: Exception => {
-              t.updateStatus(TaskStatus.error("The server encountered an internal error. Please try again later."))
               Logger.error(e.getMessage(), e)
+              t.updateStatus(TaskStatus.error("The server encountered an internal error. Please try again later."))              
             }
           }
       }
