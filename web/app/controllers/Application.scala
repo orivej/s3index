@@ -23,17 +23,19 @@ import com.codeminders.s3simpleclient.model.Bucket
 import org.apache.commons.io.FileUtils
 
 object Application extends Controller {
+  
+  val settings = new ApplicationSettings(Play.application.configuration)
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
   }
 
   def generalPropertiesPage = Action {
-    Ok(views.html.properties("Generate index.html for all files in Amazon S3 bucket. Step 1"))
+    Ok(views.html.properties(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
   }
 
   def viewPropertiesPage = Action {
-    Ok(views.html.viewProperties("Generate index.html for all files in Amazon S3 bucket. Step 2"))
+    Ok(views.html.viewProperties(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
   }
   
   def generatorPage = Action {
@@ -43,7 +45,7 @@ object Application extends Controller {
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
       bucketProperties.updateStatus(TaskStatus.info(0, "Please wait. We will start processing of your bucket shortly"))
       S3IndexersPool ! bucketProperties
-      Ok(views.html.generate("Generate index.html for all files in Amazon S3 bucket. Step 3"))
+      Ok(views.html.generate(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
   }
 
   def status = Action {
@@ -73,7 +75,7 @@ object Application extends Controller {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val task = getOrInitializeS3IndexTask(uuid)
-      val taskProperties = task.properties.get().getOrElse(new Properties(Play.application.configuration))
+      val taskProperties = task.properties.get().getOrElse(new Properties(settings))
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
 
       Ok(taskProperties.toJSON())
@@ -93,15 +95,15 @@ object Application extends Controller {
           isLengthInRange("excludeKey", 1 to 1024).
           isLengthInRange("includeKey", 1 to 1024).
           isLengthInRange("customCSS", 1 to 1024).
-          oneOf("template", List("Simple", "Slim", "Blue", "Orange")).
-          oneOf("fileListFormat", List("Full", "Brief")).
+          oneOf("template", TemplateStyle.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
+          oneOf("fileListFormat", FileListFormat.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
           oneOf("outputTo", List("ZipArchive", "Bucket")).
           isLengthInRange("accessKeyID", 1 to 255).
           isLengthInRange("secretAccessKey", 1 to 255)
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
         else {
-          val taskProperties = task.properties.get().getOrElse(new Properties(Play.application.configuration)).updateProperties(parameters)
+          val taskProperties = task.properties.get().getOrElse(new Properties(settings)).updateProperties(parameters)
           Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
           task.properties.set(Option(taskProperties))
         }

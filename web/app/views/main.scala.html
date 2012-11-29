@@ -1,10 +1,10 @@
-@(pageTitle: String)(body: Html)(footer: Html)
+@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String)(body: Html)(footer: Html)
 
 <!DOCTYPE html>
 
 <html>
 <head>
-<title>@pageTitle</title>
+<title>@applicationName @applicationDescription</title>
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/bootstrap.min.css")">
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/s3index.css")">
 <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("img/favicon.ico")">
@@ -15,7 +15,7 @@
 			<div class="container-fluid">
 				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
 					class="icon-bar"></span>
-				</a> <a class="brand" href="#"><img src="@routes.Assets.at("img/logo-20x20.png")"/> S3 Index Generator</a>
+				</a> <a class="brand" href="@brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationName</a>
 				<div class="likes">
 					<div class="fb-like" data-href="http://codeminders.com" data-send="false" data-layout="button_count" data-width="350" data-show-faces="false"
 						data-action="recommend" data-colorscheme="dark" data-font="tahoma"></div>
@@ -32,7 +32,7 @@
 		<div class="row-fluid">
 		  <hr/>
 		  <footer>
-            <p>&copy; Codeminders 2012</p>
+            <p>&copy; @brandName @yearUpdated</p>
       </footer>
 		</div>
 	</div>	

@@ -44,13 +44,15 @@ class S3SimpleClientTests extends FunSuite {
     assert("Data of Object 1" === out.toString())
   }
   
-  ignore("NoSuchBucket exception. Set correct UID and Secret Key at etc/AwsCredentials.properties and run this test") {
+  test("NoSuchBucket exception. Set correct UID and Secret Key at etc/AwsCredentials.properties and run this test") {
     val client = SimpleS3(AWSCredentials(new FileInputStream("etc/AwsCredentials.properties")))
-    val thrown = intercept[AmazonServiceException] {
+    val thrown = intercept[NoSuchBucketException] {
       client.bucket("nosuchbucket").list().keysNumber
     }
     assert(thrown.statusCode === 404)
     assert(thrown.errorCode === "NoSuchBucket")
+    assert(thrown.bucketName === "nosuchbucket")
+    assert(!thrown.hostId.isEmpty())
   }
 
 }

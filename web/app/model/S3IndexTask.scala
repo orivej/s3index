@@ -79,7 +79,7 @@ import TemplateStyle._
 import FileListFormat._
 import model.Utils._
 
-class Properties(configuration: Configuration,
+class Properties(configuration: ApplicationSettings,
   val name: String = "",
   val credentials: Option[AWSCredentials] = None,
   val outputOption: OutputOption = ZipArchive,
@@ -92,10 +92,7 @@ class Properties(configuration: Configuration,
   val footer: String = """Generated with <a href="%s">S3Index</a> on %s""".format("codeminders.com", new SimpleDateFormat("MMMMM dd yyyy", Locale.US).format(new Date())),
   val customCSS: Set[String] = Set()) {
   
-  def stylesLocation:URL = configuration.getString("s3index.styles.location") match {
-       case None => "styles"
-       case Some(s) => s
-  }
+  def stylesLocation:URL = configuration.stylesLocation
   
   def updateProperties(parameters: Map[String, Seq[String]]): Properties = {
       val name = if (parameters.contains("bucketName")) parameters.get("bucketName").get(0) else this.name

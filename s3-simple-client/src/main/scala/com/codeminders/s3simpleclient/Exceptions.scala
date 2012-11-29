@@ -8,3 +8,16 @@ class AmazonServiceException(val statusCode: Int, xml: Elem) extends Exception("
   lazy val resource = xml \ "Resource" text
   lazy val requestId = xml \ "RequestId" text
 }
+
+class NoSuchBucketException(xml: Elem) extends AmazonServiceException(404, xml){
+  lazy val bucketName = xml \ "BucketName" text
+  lazy val hostId = xml \ "HostId" text
+}
+
+object AmazonServiceException{
+  def apply(statusCode: Int, xml: Elem): AmazonServiceException = {
+    xml \ "Code" head match {
+      case <Code>NoSuchBucket</Code> => new NoSuchBucketException(xml)
+    }
+  }
+}

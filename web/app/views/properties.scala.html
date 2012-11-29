@@ -1,6 +1,6 @@
-@(pageTitle: String) 
+@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String) 
 
-@main(pageTitle) {
+@main(applicationName, applicationDescription, brandName, brandLink, yearUpdated) {
   @content{
     <p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
     <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML
