@@ -13,8 +13,15 @@ import java.io.BufferedInputStream
 trait HTTPClient {
   
   def processRequest[T](url: Request, handler: (InputStream, String) => T): T = {
-		  Http(url >> { handler })
+		  Http(url >> ( handler ) >! {
+			  case e => handleException(e)
+			})
   }
+  
+  def handleException(e: Throwable): Unit = e match {
+    case s: StatusCode => throw AmazonServiceException(s.code, XML.loadString(s.contents))
+    case _ => throw e
+  } 
   
 }
 
