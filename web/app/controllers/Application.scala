@@ -23,19 +23,17 @@ import com.codeminders.s3simpleclient.model.Bucket
 import org.apache.commons.io.FileUtils
 
 object Application extends Controller {
-  
-  val settings = new ApplicationSettings(Play.application.configuration)
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
   }
 
   def generalPropertiesPage = Action {
-    Ok(views.html.properties(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
+    Ok(views.html.properties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
   }
 
   def viewPropertiesPage = Action {
-    Ok(views.html.viewProperties(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
+    Ok(views.html.viewProperties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
   }
   
   def generatorPage = Action {
@@ -44,8 +42,8 @@ object Application extends Controller {
       val bucketProperties = getOrInitializeS3IndexTask(uuid)
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + bucketProperties.toString())
       bucketProperties.updateStatus(TaskStatus.info(0, "Please wait. We will start processing of your bucket shortly"))
-      S3IndexersPool ! bucketProperties
-      Ok(views.html.generate(settings.applicationName, settings.applicationDescription, settings.brandName, settings.brandLink, settings.yearUpdated))
+      globals.s3Indexer ! bucketProperties
+      Ok(views.html.generate(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
   }
 
   def status = Action {
@@ -75,7 +73,7 @@ object Application extends Controller {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
       val task = getOrInitializeS3IndexTask(uuid)
-      val taskProperties = task.properties.get().getOrElse(new Properties(settings))
+      val taskProperties = task.properties.get().getOrElse(new Properties(globals.settings))
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
 
       Ok(taskProperties.toJSON())
@@ -103,7 +101,7 @@ object Application extends Controller {
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
         else {
-          val taskProperties = task.properties.get().getOrElse(new Properties(settings)).updateProperties(parameters)
+          val taskProperties = task.properties.get().getOrElse(new Properties(globals.settings)).updateProperties(parameters)
           Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + taskProperties.toString())
           task.properties.set(Option(taskProperties))
         }
@@ -136,7 +134,7 @@ object Application extends Controller {
       Routes.javascriptRouter("jsRoutes")(controllers.routes.javascript.Application.getIndex, controllers.routes.javascript.Application.stylePreview)).as("text/javascript")
   }
 
-  private def getOrInitializeS3IndexTask(uuid: String)(implicit application: play.api.Application): S3IndexTask = {
+  private def getOrInitializeS3IndexTask(uuid: String): S3IndexTask = {
     Cache.getOrElse[S3IndexTask](uuid + ".bucket.properties") {
       new S3IndexTask(uuid)
     }

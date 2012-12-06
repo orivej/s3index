@@ -12,13 +12,13 @@ import java.security.Security
 import java.lang.reflect.Method
 import scala.math._
 import model.ApplicationSettings
+import akka.actor.ActorSystem
+import akka.actor.Props
 
 object Global extends GlobalSettings {
   
   override def onStart(app: Application) {
     Logger.info("S3Index started")
-    Logger.info("Starting " + S3IndexersPool.getClass().getName() + "...")
-    S3IndexersPool.start(new ApplicationSettings(Play.application.configuration).indexersNumber)
   }  
   
   override def onStop(app: Application) {
@@ -35,4 +35,9 @@ object Global extends GlobalSettings {
     )
   }
     
+}
+
+package object globals {
+  lazy val s3Indexer = ActorSystem("S3Index").actorOf(Props(new S3IndexersPool(new ApplicationSettings(Play.application.configuration).indexersNumber)), name = "indexerPool")
+  lazy val settings = new ApplicationSettings(Play.application.configuration)
 }

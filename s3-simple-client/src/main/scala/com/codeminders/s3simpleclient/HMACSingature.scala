@@ -18,7 +18,6 @@ trait HMACSingature extends HTTPClient {
   
   private var cred_ : AWSCredentials = null
   
-  val dateUtils: DateUtils = new DateUtils()
   
   def credentials: AWSCredentials = if(cred_ ==  null) throw new IllegalStateException("Please authenticate yourself before signing the request") else cred_
   
@@ -34,7 +33,7 @@ trait HMACSingature extends HTTPClient {
   }
   
   private def sign(request: Request): Request = {
-    val date: String = dateUtils.formatRfc822Date(new Date());
+    val date: String = DateUtils.formatRfc822Date(new Date());
     val r = request <:< Map(("Date", date)) <:< Map(("Host", request.host.toHostString())) <:< Map(("X-Amz-Date", date))
 
     val md5Sum = r.headers.find((p) => p._1 == "Content-MD5") match {

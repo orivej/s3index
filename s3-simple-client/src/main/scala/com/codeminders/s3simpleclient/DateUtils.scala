@@ -6,7 +6,7 @@ import java.text.ParseException
 import java.util.Date
 import java.util.Locale
 
-class DateUtils {
+object DateUtils {
 
   private val iso8601DateFormat: SimpleDateFormat =
     new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
