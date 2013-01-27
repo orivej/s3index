@@ -5,4 +5,4 @@ if [ -z `which sbt` ]; then
    exit 1
 fi
 
-sbt "project s3index-web" run 
+sbt run 

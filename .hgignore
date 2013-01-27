@@ -3,6 +3,7 @@ syntax: glob
 .classpath
 .worksheet
 .history
+.git
 web/logs/*
 web/project/project/*
 web/target/*

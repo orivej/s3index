@@ -1,0 +1,78 @@
+@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String) 
+
+@main(applicationName, applicationDescription, brandName, brandLink, yearUpdated) {
+  @content{
+    <p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
+    <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML
+    could be customized at the second page of this wizard.</p>
+  } {
+    <div class="wizard">
+      <a href="#" class="current"><span class="badge badge-inverse">1</span> Specify Your Bucket</a> 
+      <a href="#" id="viewPropertiesPageLink"><span class="badge">2</span>Set View Properties</a>
+      <a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+    </div>
+  } {
+		<form id="form">
+			<fieldset>
+				<legend>General Properties</legend>
+				<!-- Bucket Name -->
+				<label>Specify a name of your bucket. This parameter is mandatory</label>
+				<div class="control-group">
+					<input type="text" name="bucketName" class="input-large form-error" placeholder="mybucket">
+				</div>
+				<hr />
+				<!-- Exclude Keys -->
+				<label>List of keys to exclude</label>
+				<div class="control-group">
+					<div class="clonable">
+						<div class="input-append control-group">
+							<input class="span6" id="excludeKey" name="excludeKey" type="text">
+							<a class="clonable-remove-button add-on" href="#">&times;</a>
+						</div>
+						<a href="#" id="excludeKeyAddButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
+					</div>					
+				</div>				
+				<hr />
+				<!-- Include Key -->
+				<label>List of keys to include</label>
+				<div class="control-group">
+					<div class="clonable">
+						<div class="input-append control-group">
+							<input class="span6" id="includeKey" name="includeKey" type="text">
+							<a class="clonable-remove-button add-on" href="#">&times;</a>
+						</div>
+						<a href="#" id="includeKeyAddButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
+					</div>
+				</div>				
+				<hr />
+				<!-- Next -->
+				<button id="next" type="submit" class="btn btn-large btn-primary">Next <i class="icon-chevron-right icon-white"></i></button>
+				<!-- Go -->
+				<a class="btn btn-large" href="#" id="go">Go <i class="icon-ok"></i></a>
+			</fieldset>
+		</form>
+  }
+} {
+  <script type="text/javascript">
+    $(document).ready(function() {
+      registerClonable();
+      registerFormSubmitButton('next', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
+      registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.finalPage')
+      registerFormSubmitButton('viewPropertiesPageLink', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
+      registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
+      loadProperties('@routes.Application.properties')
+    });
+
+    function applyProperties(properties) {
+      $('input[name="bucketName"]').val(properties.bucketName);
+      for ( var i in properties.includeKey) {
+        $('#includeKeyAddButton').trigger('click');
+        $('#includeKey' + i).val(properties.includeKey[i]);
+      }
+      for ( var i in properties.excludeKey) {
+        $('#excludeKeyAddButton').trigger('click');
+        $('#excludeKey' + i).val(properties.excludeKey[i]);
+      }
+    }
+    </script>
+}

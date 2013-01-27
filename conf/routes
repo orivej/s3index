@@ -1,0 +1,23 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /                            controllers.Application.index
+
+GET     /general-properties         controllers.Application.generalPropertiesPage
+
+GET     /view-properties            controllers.Application.viewPropertiesPage
+
+GET     /generator                   controllers.Application.finalPage
+
+GET     /properties                  controllers.Application.properties
+
+GET     /assets/*file                  controllers.Assets.at(path="/public", file)
+
+POST    /properties                    controllers.Application.setProperties
+
+GET    /test                    controllers.Application.test
+
+GET    /jsonp                    controllers.Application.jsonp(indexid: String, prefix: String, marker: String, callback: String)
+
+GET    /preview                controllers.Application.preview(template: String, filesformat: String)

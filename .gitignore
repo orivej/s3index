@@ -1,0 +1,17 @@
+.project
+.hg
+.classpath
+.worksheet
+.history
+web/logs
+web/project/project
+web/tmp
+web/.history
+web/dist
+web/bin
+.target
+target
+*.log
+.settings
+.externalToolBuilders
+.cache

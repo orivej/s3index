@@ -1,0 +1,91 @@
+@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String, templates: Seq[String], filesFormats: Seq[String])
+
+@main(applicationName, applicationDescription, brandName, brandLink, yearUpdated) {
+  @content{
+		<p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
+		<p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML could
+			be customized at the second page of this wizard.</p>
+  } {
+		<div class="wizard">
+			<a href="#" id="propertiesPageLink"><span class="badge">1</span> Specify Your Bucket</a>
+			<a href="#" class="current"><span class="badge badge-inverse">2</span>Set	View Properties</a>
+			<a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+		</div>
+  } {
+		<form id="form">
+			<fieldset>
+				<legend>Template Properties</legend>
+				
+				<label>Select template from drop-down list</label>
+				<div class="controls control-group">
+					<select name='template' class="span4">
+					</select> 
+				</div>
+				
+				<label>Select file list format</label>
+				<div class="controls control-group">
+					<select name='filesformat' class="span4">
+					</select>
+				</div>
+				
+				<label>Maximum keys per page</label>
+        <div class="controls control-group">
+          <input type="number" name='maxKeys' class="span4 form-error">
+        </div>
+				
+				<p/>
+        <div id="resizable" class="thumbnail controls controls-row ui-resizable" style="width: 100%; height: 100%;">
+          <style type="text/css">
+            #s3index-root a{
+						  pointer-events: none;
+						  cursor: default;
+						}
+          </style>
+				  <div id="s3index-root" style="margin: 10px"></div>
+				</div>
+				
+		    <hr/>
+		    
+				<a class="btn btn-large" href="#" id="back"><i class="icon-chevron-left"></i> Back</a>
+				<button id="go" type="submit" class="btn btn-large btn-primary">Go <i class="icon-ok icon-white"></i></button>
+			</fieldset>
+		</form>
+  }
+} {
+  <script type="text/javascript">
+      $(document).ready(function() {
+        registerClonable();
+        registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
+        registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.finalPage')
+        registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
+        registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
+        loadProperties('@routes.Application.properties')
+        $("#resizable").resizable({ animate: false, ghost: true });
+      });
+
+      function applyProperties(properties) {
+        @for(template <- templates){
+          $('select[name="template"]').append('<option>@template</option>')
+        }
+        $('select[name="template"]').change(function() {
+          var template = $(this).val();
+          var filesformat = $('select[name="filesformat"]').val()
+          loadData('/preview?template=' + template + '&filesformat=' + filesformat, function(content){$("#s3index-root").html(content)})
+        });
+        @for(ft <- filesFormats) {
+          $('select[name="filesformat"]').append('<option>@ft</option>')
+        }
+        $('select[name="filesformat"]').change(function() {
+          var filesformat = $(this).val();
+          var template = $('select[name="template"]').val()
+          loadData('/preview?template=' + template + '&filesformat=' + filesformat, function(content){$("#s3index-root").html(content)})
+        });
+        $('select[name="template"]').val(properties.template)
+        $('input[name="maxKeys"]').val(properties.maxKeys)
+        $('select[name="template"]').trigger('change');
+        $('select[name="filesformat"]').val(properties.fileListFormat)
+        $('select[name="filesformat"]').trigger('change');
+      }
+      
+    </script>
+}

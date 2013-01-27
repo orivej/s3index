@@ -1,0 +1,28 @@
+#s3index-root table {
+  border: none;
+}
+#s3index-root th,td {
+  border: none;
+  text-align: left;
+  vertical-align: bottom;
+  padding-right: 10px;
+}
+#s3index-root .title {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: "Times New Roman", Times, serif;
+}
+#s3index-root .footer {
+  font-size: 8px;
+  font-weight: normal;
+  float: right;
+  font-family: "Times New Roman", Times, serif;
+}
+#s3index-root .nav .next {
+	float: right;
+  margin-left: 10px;
+}
+#s3index-root .prev {
+	float: left;
+  margin-right: 10px;
+}
