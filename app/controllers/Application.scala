@@ -29,6 +29,7 @@ import java.util.Date
 import com.codeminders.scalaws.s3.model.StorageClass
 import org.apache.commons.lang.StringUtils
 import com.codeminders.scalaws.AmazonServiceException
+import com.codeminders.scalaws.AmazonClientException
 
 object Application extends Controller {
 
@@ -110,11 +111,6 @@ object Application extends Controller {
     }).as("text/javascript")
   }
 
-  def test = Action {
-    request =>
-      Ok(views.html.test(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
-  }
-
   def properties = Action {
     implicit request =>
       val uuid = getOrInitializeUUID(request)
@@ -132,6 +128,7 @@ object Application extends Controller {
         Logger.debug("parameters -> " + parameters.toString())
         val validator = new PropertiesValidator(parameters).
           isLengthInRange("bucketName", 3 to 63).
+          matches("bucketName", """[a-zA-Z0-9\-]*""").
           isNumber("depthLevel").
           isNumberInRange("depthLevel", 1 to 100).
           isNumber("maxKeys").
@@ -153,6 +150,7 @@ object Application extends Controller {
 	            s3Client(newProperties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
 	          } catch {
 	          	case e: AmazonServiceException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.message)))), e.message)
+	          	case e: AmazonClientException =>  throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.getMessage)))), e.getMessage)
 	          }
           }
           updateProperties(uuid, newProperties)

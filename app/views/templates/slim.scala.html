@@ -1,23 +1,23 @@
-@(directory: String, data: Seq[Seq[Html]], prev: Option[Html], next: Option[Html], footer: Html)
+@(directory: String, data: Seq[Seq[Html]], prev: Option[Html], next: Option[Html], footer: Html, backreference: String)
 
-<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/templates/slim.css")">
+<link rel="stylesheet" media="screen" href="@backreference@routes.Assets.at("css/templates/slim.css")">
 <style type="text/css">
 #s3index-root .file {
-  background-image: url('@routes.Assets.at("img/file.gif")');
+  background-image: url('@backreference@routes.Assets.at("img/file.gif")');
   background-repeat: no-repeat;
   padding-left: 25px;
   padding-top: 2px;
   padding-bottom: 2px;
 }
 #s3index-root .dir {
-  background-image: url('@routes.Assets.at("img/folder.gif")');
+  background-image: url('@backreference@routes.Assets.at("img/folder.gif")');
   background-repeat: no-repeat;
   padding-left: 25px;
   padding-top: 2px;
   padding-bottom: 2px;
 }
 #s3index-root .back {
-  background-image: url('@routes.Assets.at("img/back.gif")');
+  background-image: url('@backreference@routes.Assets.at("img/back.gif")');
   background-repeat: no-repeat;
   padding-left: 25px;
   padding-top: 2px;

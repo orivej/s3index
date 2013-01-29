@@ -1,9 +1,11 @@
 package model
 
 import play.api.libs.json._
+import org.apache.commons.lang.StringUtils
+import scala.util.matching.Regex
 
 class PropertiesValidator(properties: Map[String, Seq[String]], errors: List[Map[String, String]] = Nil) {
-
+  
   def newError(propertyId: String, message: String): Map[String, String] = {
     Map(propertyId -> message)
   }
@@ -35,6 +37,10 @@ class PropertiesValidator(properties: Map[String, Seq[String]], errors: List[Map
      (pv, k) =>
        pv.isLengthInRange(k, range)
     }
+  }
+  
+  def matches(key: String, pattern: String): PropertiesValidator = {
+    validateWith(key, v => v.matches(pattern), "The value of this parameter should contain only numbers or a-z characters.")
   }
   
   def anyErrors(): Boolean = {

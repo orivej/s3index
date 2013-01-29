@@ -1,6 +1,7 @@
 package model
 
 import play.api.templates.Html
+import play.api._
 import play.templates.ScalaTemplateCompiler
 import com.codeminders.scalaws.s3.AWSS3
 import com.codeminders.scalaws.s3.api.Keys
@@ -62,9 +63,9 @@ class IndexGenerator(serviceLink: String) {
 
     template match {
       case Simple =>
-        views.html.templates.simple(if (prefix.isEmpty()) "/" else "/" + prefix, data, prevHtml, nextHtml, footer)
+        views.html.templates.simple(if (prefix.isEmpty()) "/" else "/" + prefix, data, prevHtml, nextHtml, footer, globals.settings.backreferenceUrl)
       case Slim =>
-        views.html.templates.slim(if (prefix.isEmpty()) "/" else "/" + prefix, data, prevHtml, nextHtml, footer)
+        views.html.templates.slim(if (prefix.isEmpty()) "/" else "/" + prefix, data, prevHtml, nextHtml, footer, globals.settings.backreferenceUrl)
     }
   }
   

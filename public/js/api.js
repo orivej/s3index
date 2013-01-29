@@ -36,7 +36,7 @@ var S3Index = {
     marker = marker || ''
     var indexid = document.getElementById('s3index-root').getAttribute('indexid');
     if(!indexid) return;
-    S3Index.JSONP.getJSON("/jsonp", function(data) {
+    S3Index.JSONP.getJSON("http://s3index.herokuapp.com/jsonp", function(data) {
       document.getElementById('s3index-root').innerHTML = data.html
     }, {'indexid' : indexid, 'prefix' : prefix, 'marker': marker }  );
     S3Index.currentMarker = marker

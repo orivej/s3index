@@ -16,8 +16,6 @@ GET     /assets/*file                  controllers.Assets.at(path="/public", fil
 
 POST    /properties                    controllers.Application.setProperties
 
-GET    /test                    controllers.Application.test
-
 GET    /jsonp                    controllers.Application.jsonp(indexid: String, prefix: String, marker: String, callback: String)
 
 GET    /preview                controllers.Application.preview(template: String, filesformat: String)
