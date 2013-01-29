@@ -34,17 +34,17 @@ import com.codeminders.scalaws.AmazonClientException
 object Application extends Controller {
 
   private val s3Client = AWSS3()
-  
+
   private val htmlCompressor = new HtmlCompressor()
 
   htmlCompressor.setRemoveIntertagSpaces(true)
 
-  private val indexGenerator = new IndexGenerator(globals.settings.backreferenceUrl)
-  
-  private val codeTemplate = "<div id=\"s3index-root\" indexid=\"%s\"></div>" + 
-    		  				 "<script src=\"%s/assets/js/api.js\" type=\"text/javascript\"></script>" + 
-    		  				 "<script>(function() {S3Index.load()}());</script>"
-    		  				 
+  private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString())
+
+  private val codeTemplate = "<div id=\"s3index-root\" indexid=\"%s\"></div>" +
+    "<script src=\"%s/api\" type=\"text/javascript\"></script>" +
+    "<script>(function() {S3Index.load()}());</script>"
+
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
   }
@@ -54,16 +54,21 @@ object Application extends Controller {
   }
 
   def viewPropertiesPage = Action {
-    Ok(views.html.pages.viewProperties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated, Template.values.map(_.toString).toSeq, FilesListFormat.values.map(_.toString).toSeq))
+    request =>
+      if (!arePrimaryPropertiesSet(request)) Redirect(routes.Application.generalPropertiesPage)
+      else Ok(views.html.pages.viewProperties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated, Template.values.map(_.toString).toSeq, FilesListFormat.values.map(_.toString).toSeq))
   }
 
   def finalPage = Action {
     request =>
-      val uuid = getOrInitializeUUID(request)
-      val properties = getOrInitializeProperties(uuid)
-      Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
-      val code = codeTemplate.format(properties.toId(), globals.settings.backreferenceUrl)
-      Ok(views.html.pages.finalPage(code, globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
+      if (!arePrimaryPropertiesSet(request)) Redirect(routes.Application.generalPropertiesPage)
+      else {
+        val uuid = getOrInitializeUUID(request)
+        val properties = getOrInitializeProperties(uuid)
+        Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
+        val code = codeTemplate.format(properties.toId(), globals.settings.backreferenceUrl)
+        Ok(views.html.pages.finalPage(code, globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
+      }
   }
 
   def preview(template: String, fileListFormat: String) = Action {
@@ -97,18 +102,21 @@ object Application extends Controller {
 
   def jsonp(indexId: String, prefix: String, marker: String, callback: String) = Action {
     Logger.debug(Seq("indexId -> " + indexId, "prefix -> " + prefix, "marker -> " + marker, "callback -> " + callback).mkString(", "))
-    Ok(Cache.getOrElse[Html]("%s.%s.%s".format(indexId, prefix, marker) ) {
-      Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try{
-	    val properties = Properties.fromId(indexId)
-	    Logger.debug("Cache miss, properties -> " + properties)
-	    val index = indexGenerator.generate(s3Client, properties, prefix, marker).body
-	    htmlCompressor.compress(index)
-      }
-      catch {
+    Ok(Cache.getOrElse[Html]("%s.%s.%s".format(indexId, prefix, marker)) {
+      Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try {
+        val properties = Properties.fromId(indexId)
+        Logger.debug("Cache miss, properties -> " + properties)
+        val index = indexGenerator.generate(properties, prefix, marker).body
+        htmlCompressor.compress(index)
+      } catch {
         case e: AmazonServiceException => views.html.templates.error("S3 request failed: " + e.message).body
         case e: Throwable => views.html.templates.error("Oops, an iternal error occured. Please try again later.").body
       }), callback))
     }).as("text/javascript")
+  }
+
+  def api() = Action {
+    Ok(views.html.api(globals.settings.backreferenceUrl.toString())).as("text/javascript")
   }
 
   def properties = Action {
@@ -128,7 +136,7 @@ object Application extends Controller {
         Logger.debug("parameters -> " + parameters.toString())
         val validator = new PropertiesValidator(parameters).
           isLengthInRange("bucketName", 3 to 63).
-          matches("bucketName", """[a-zA-Z0-9\-]*""").
+          matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-]*""").
           isNumber("depthLevel").
           isNumberInRange("depthLevel", 1 to 100).
           isNumber("maxKeys").
@@ -145,13 +153,13 @@ object Application extends Controller {
         else {
           val oldProperties = getOrInitializeProperties(uuid)
           val newProperties = oldProperties.update(parameters)
-          if(oldProperties.bucketName != newProperties.bucketName){
-	          try{
-	            s3Client(newProperties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
-	          } catch {
-	          	case e: AmazonServiceException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.message)))), e.message)
-	          	case e: AmazonClientException =>  throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.getMessage)))), e.getMessage)
-	          }
+          if (oldProperties.bucketName != newProperties.bucketName) {
+            try {
+              s3Client(newProperties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
+            } catch {
+              case e: AmazonServiceException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.message)))), e.message)
+              case e: AmazonClientException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.getMessage)))), e.getMessage)
+            }
           }
           updateProperties(uuid, newProperties)
         }
@@ -190,6 +198,11 @@ object Application extends Controller {
         CONTENT_LENGTH -> content.length.toString,
         CONTENT_TYPE -> play.api.libs.MimeTypes.forFileName(fileName).getOrElse(play.api.http.ContentTypes.BINARY)) ++ (Map(CONTENT_DISPOSITION -> ("attachment; filename=" + fileName)))),
       Enumerator.fromStream(new ByteArrayInputStream(content)))
+  }
+
+  private def arePrimaryPropertiesSet(request: Request[AnyContent]): Boolean = {
+    val bucketName = getOrInitializeProperties(getOrInitializeUUID(request)).bucketName
+    !bucketName.isEmpty()
   }
 
 }
