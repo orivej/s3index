@@ -14,6 +14,8 @@ import model.ApplicationSettings
 import akka.actor.ActorSystem
 import akka.actor.Props
 import com.codeminders.scalaws.s3.AWSS3
+import play.mvc.Result
+import views.html.defaultpages.notFound
 
 object Global extends GlobalSettings {
   
@@ -26,15 +28,24 @@ object Global extends GlobalSettings {
   }
 
   override def onError(request: RequestHeader, ex: Throwable) = {
-    Logger.error("Uncought exception", ex)
-    val configuration = new ApplicationSettings(Play.application.configuration)
-
+    Logger.error("Uncaught exception", ex)
     InternalServerError(
-        views.html.errorPage(configuration.applicationName, configuration.applicationDescription, configuration.brandName, configuration.brandLink, configuration.yearUpdated)
-        ("The server encountered an internal error, please try again later.")
+    		views.html.errorPage(globals.settings)("The server encountered an internal error, please try again later.")
     )
   }
-    
+  
+  override def onBadRequest(request: RequestHeader, error: String) = {
+    Logger.warn("Bad request: %s, error: %s".format(request, error))
+    BadRequest(
+    		views.html.errorPage(globals.settings)("Bad request.")
+    )
+  }
+  
+  override def onHandlerNotFound(request: RequestHeader) = {
+    Logger.warn("Handler not found for %s".format(request))
+    NotFound(views.html.errorPage(globals.settings)("The page you requested was not found."))
+  }
+  
 }
 
 package object globals {

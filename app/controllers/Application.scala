@@ -40,23 +40,25 @@ object Application extends Controller {
   htmlCompressor.setRemoveIntertagSpaces(true)
 
   private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString())
-
-  private val codeTemplate = "<div id=\"s3index-root\" indexid=\"%s\"></div>" +
-    "<script src=\"%s/api\" type=\"text/javascript\"></script>" +
-    "<script>(function() {S3Index.load()}());</script>"
+  
+  private val generalPropertiesPageTemplate = views.html.pages.generalProperties(globals.settings)
+  
+  private val viewPropertiesPageTemplate = views.html.pages.viewProperties(globals.settings)(_, _)
+  
+  private val finalPageTemplate = views.html.pages.finalPage(globals.settings)(_)
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
   }
 
   def generalPropertiesPage = Action {
-    Ok(views.html.pages.generalProperties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
+    Ok(generalPropertiesPageTemplate)
   }
 
   def viewPropertiesPage = Action {
     request =>
       if (!arePrimaryPropertiesSet(request)) Redirect(routes.Application.generalPropertiesPage)
-      else Ok(views.html.pages.viewProperties(globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated, Template.values.map(_.toString).toSeq, FilesListFormat.values.map(_.toString).toSeq))
+      else Ok(viewPropertiesPageTemplate(Template.values.map(_.toString).toSeq, FilesListFormat.values.map(_.toString).toSeq))
   }
 
   def finalPage = Action {
@@ -66,8 +68,7 @@ object Application extends Controller {
         val uuid = getOrInitializeUUID(request)
         val properties = getOrInitializeProperties(uuid)
         Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
-        val code = codeTemplate.format(properties.toId(), globals.settings.backreferenceUrl)
-        Ok(views.html.pages.finalPage(code, globals.settings.applicationName, globals.settings.applicationDescription, globals.settings.brandName, globals.settings.brandLink, globals.settings.yearUpdated))
+        Ok(finalPageTemplate(properties.toId()))
       }
   }
 

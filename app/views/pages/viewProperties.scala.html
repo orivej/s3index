@@ -1,15 +1,22 @@
-@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String, templates: Seq[String], filesFormats: Seq[String])
+@(applicationSettings: model.ApplicationSettings)(templates: Seq[String], filesFormats: Seq[String])
 
-@main(applicationName, applicationDescription, brandName, brandLink, yearUpdated) {
-  @content{
+@main(applicationSettings.applicationName, applicationSettings.applicationDescription, applicationSettings.brandName, applicationSettings.brandLink, applicationSettings.yearUpdated) {
+<style type="text/css">
+#s3index-root a {
+	pointer-events: none;
+	cursor: default;
+}
+</style>
+} {
+@content{
 		<p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
 		<p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML could
 			be customized at the second page of this wizard.</p>
   } {
 		<div class="wizard">
 			<a href="#" id="propertiesPageLink"><span class="badge">1</span> Specify Your Bucket</a>
-			<a href="#" class="current"><span class="badge badge-inverse">2</span>Set	View Properties</a>
-			<a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+			<a href="#" class="current"><span class="badge badge-inverse">2</span> Select Template</a>
+			<a href="#" id="finalPageLink"><span class="badge">3</span> Get Your Code</a>
 		</div>
   } {
 		<form id="form">
@@ -35,19 +42,13 @@
 				
 				<p/>
         <div id="resizable" class="thumbnail controls controls-row ui-resizable" style="width: 100%; height: 100%;">
-          <style type="text/css">
-            #s3index-root a{
-						  pointer-events: none;
-						  cursor: default;
-						}
-          </style>
 				  <div id="s3index-root" style="margin: 10px"></div>
 				</div>
 				
 		    <hr/>
 		    
 				<a class="btn btn-large" href="#" id="back"><i class="icon-chevron-left"></i> Back</a>
-				<button id="go" type="submit" class="btn btn-large btn-primary">Go <i class="icon-ok icon-white"></i></button>
+				<button id="done" type="submit" class="btn btn-large btn-primary">Done <i class="icon-ok icon-white"></i></button>
 			</fieldset>
 		</form>
   }
@@ -56,11 +57,12 @@
       $(document).ready(function() {
         registerClonable();
         registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-        registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.finalPage')
+        registerFormSubmitButton('done', '@routes.Application.properties', '@routes.Application.finalPage')
         registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-        registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
+        registerFormSubmitButton('finalPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
         loadProperties('@routes.Application.properties')
         $("#resizable").resizable({ animate: false, ghost: true });
+        $("#done", document.forms[0]).focus();
       });
 
       function applyProperties(properties) {

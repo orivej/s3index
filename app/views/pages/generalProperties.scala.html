@@ -1,6 +1,7 @@
-@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String) 
+@(applicationSettings: model.ApplicationSettings) 
 
-@main(applicationName, applicationDescription, brandName, brandLink, yearUpdated) {
+@main(applicationSettings.applicationName, applicationSettings.applicationDescription, applicationSettings.brandName, applicationSettings.brandLink, applicationSettings.yearUpdated){
+} {
   @content{
     <p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
     <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML
@@ -8,8 +9,8 @@
   } {
     <div class="wizard">
       <a href="#" class="current"><span class="badge badge-inverse">1</span> Specify Your Bucket</a> 
-      <a href="#" id="viewPropertiesPageLink"><span class="badge">2</span>Set View Properties</a>
-      <a href="#" id="generatorPageLink"><span class="badge">3</span> Generate Index</a>
+      <a href="#" id="templatePageLink"><span class="badge">2</span> Select Template</a>
+      <a href="#" id="finalPageLink"><span class="badge">3</span> Get Your Code</a>
     </div>
   } {
 		<form id="form">
@@ -48,7 +49,7 @@
 				<!-- Next -->
 				<button id="next" type="submit" class="btn btn-large btn-primary">Next <i class="icon-chevron-right icon-white"></i></button>
 				<!-- Go -->
-				<a class="btn btn-large" href="#" id="go">Go <i class="icon-ok"></i></a>
+				<a class="btn btn-large" href="#" id="done">Done <i class="icon-ok"></i></a>
 			</fieldset>
 		</form>
   }
@@ -57,10 +58,11 @@
     $(document).ready(function() {
       registerClonable();
       registerFormSubmitButton('next', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
-      registerFormSubmitButton('go', '@routes.Application.properties', '@routes.Application.finalPage')
-      registerFormSubmitButton('viewPropertiesPageLink', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
-      registerFormSubmitButton('generatorPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
+      registerFormSubmitButton('done', '@routes.Application.properties', '@routes.Application.finalPage')
+      registerFormSubmitButton('templatePageLink', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
+      registerFormSubmitButton('finalPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
       loadProperties('@routes.Application.properties')
+      $("input[type='text']:first", document.forms[0]).focus(); 
     });
 
     function applyProperties(properties) {
