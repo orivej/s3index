@@ -1,6 +1,6 @@
 @(applicationSettings: model.ApplicationSettings)(templates: Seq[String], filesFormats: Seq[String])
 
-@main(applicationSettings.applicationName, applicationSettings.applicationDescription, applicationSettings.brandName, applicationSettings.brandLink, applicationSettings.yearUpdated) {
+@main(applicationSettings) {
 <style type="text/css">
 #s3index-root a {
 	pointer-events: none;

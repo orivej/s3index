@@ -100,9 +100,9 @@ footer {
 	float: right;
 }
 
-.likes {
+.navbar .like {
 	float: right;
-	padding-top: 15px;
+	padding-top: 10px
 }
 
 .preview-box {

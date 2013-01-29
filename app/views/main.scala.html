@@ -1,10 +1,10 @@
-@(applicationName: String, applicationDescription: String, brandName: String, brandLink: String, yearUpdated: String)(head: Html)(body: Html)(footer: Html)
+@(applicationSettings: model.ApplicationSettings)(head: Html)(body: Html)(footer: Html)
 
 <!DOCTYPE html>
 
 <html>
 <head>
-<title>@applicationName @applicationDescription</title>
+<title>@applicationSettings.applicationName @applicationSettings.applicationDescription</title>
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/jquery-ui-1.10.0.custom.min.css")">
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/bootstrap.min.css")">
 <link rel="stylesheet" media="screen" href="@routes.Assets.at("css/s3index.css")">
@@ -18,16 +18,42 @@
 <body>
 	<div class="navbar navbar-fixed-top navbar-inverse">
 		<div class="navbar-inner">
-			<div class="container-fluid">
+			<div class="container">
 				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
 					class="icon-bar"></span>
-				</a> <a class="brand" href="@brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationName</a>
-				<div class="likes">
-					<div class="fb-like" data-href="http://codeminders.com" data-send="false" data-layout="button_count" data-width="350" data-show-faces="false"
-						data-action="recommend" data-colorscheme="dark" data-font="tahoma"></div>
-					<div class="g-plusone" data-size="small" data-href="http://codeminders.com"></div>
-				</div>
-			</div>
+				</a> <a class="brand" href="@applicationSettings.brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationSettings.applicationName</a>
+				
+				<div class="nav-collapse collapse">
+          <ul class="like nav">
+          
+            <!-- Google+ Like Button -->
+            <li>
+		          <div class="g-plusone" data-size="medium" data-href="@applicationSettings.backreferenceUrl.toString()"></div>
+		          <script type="text/javascript">
+		            (function() {
+		              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+		              po.src = 'https://apis.google.com/js/plusone.js';
+		              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+		            })();
+		          </script>     
+            </li>
+              
+            <!-- FC like button -->
+            <li>
+		          <div id="fb-root"></div>
+		          <script>(function(d, s, id) {
+		            var js, fjs = d.getElementsByTagName(s)[0];
+		            if (d.getElementById(id)) return;
+		            js = d.createElement(s); js.id = id;
+		            js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1";
+		            fjs.parentNode.insertBefore(js, fjs);
+		          }(document, 'script', 'facebook-jssdk'));</script>
+		          <div class="fb-like" data-href="@applicationSettings.backreferenceUrl.toString()" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="tahoma" data-colorscheme="dark" data-action="recommend"></div>
+            </li>
+              
+          </ul>
+        </div>
+		  </div>
 		</div>
 	</div>
 
@@ -38,7 +64,7 @@
 		<div class="row-fluid">
 		  <hr/>
 		  <footer>
-            <p>&copy; @brandName @yearUpdated</p>
+            <p>&copy; @applicationSettings.brandName @applicationSettings.yearUpdated</p>
       </footer>
 		</div>
 	</div>	
