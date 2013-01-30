@@ -19,40 +19,39 @@
 	<div class="navbar navbar-fixed-top navbar-inverse">
 		<div class="navbar-inner">
 			<div class="container">
-				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"> <span class="icon-bar"></span> <span class="icon-bar"></span> <span
-					class="icon-bar"></span>
-				</a> <a class="brand" href="@applicationSettings.brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationSettings.applicationName</a>
+			
+				 <a class="brand" href="@applicationSettings.brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationSettings.applicationName</a>
+				 
+				 <ul class="nav">
+					 <li class="active"><a href="@applicationSettings.aboutBrandLink">About Us</a></li>
+					 <li><a href="@applicationSettings.contactBrandLink">Contact</a></li>
+				 </ul>
 				
-				<div class="nav-collapse collapse">
-          <ul class="like nav">
-          
-            <!-- Google+ Like Button -->
-            <li>
-		          <div class="g-plusone" data-size="medium" data-href="@applicationSettings.backreferenceUrl.toString()"></div>
-		          <script type="text/javascript">
-		            (function() {
-		              var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-		              po.src = 'https://apis.google.com/js/plusone.js';
-		              var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-		            })();
-		          </script>     
-            </li>
-              
-            <!-- FC like button -->
-            <li>
-		          <div id="fb-root"></div>
-		          <script>(function(d, s, id) {
-		            var js, fjs = d.getElementsByTagName(s)[0];
-		            if (d.getElementById(id)) return;
-		            js = d.createElement(s); js.id = id;
-		            js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1";
-		            fjs.parentNode.insertBefore(js, fjs);
-		          }(document, 'script', 'facebook-jssdk'));</script>
-		          <div class="fb-like" data-href="@applicationSettings.backreferenceUrl.toString()" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="tahoma" data-colorscheme="dark" data-action="recommend"></div>
-            </li>
-              
+				 <!-- Likes -->
+         <ul class="like nav">
+           <li> <!-- Google+ Like -->
+		         <div class="g-plusone" data-size="medium" data-href="@applicationSettings.backreferenceUrl.toString()"></div>
+		         <script type="text/javascript">
+		           (function() {
+		             var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+		             po.src = 'https://apis.google.com/js/plusone.js';
+		             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+		           })();
+		         </script>     
+           </li>
+           <li> <!-- FC Like -->
+		         <div id="fb-root"></div>
+		         <script>(function(d, s, id) {
+		           var js, fjs = d.getElementsByTagName(s)[0];
+		           if (d.getElementById(id)) return;
+		           js = d.createElement(s); js.id = id;
+		           js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+		           fjs.parentNode.insertBefore(js, fjs);
+		         }(document, 'script', 'facebook-jssdk'));</script>
+		         <div class="fb-like" data-href="@applicationSettings.backreferenceUrl.toString()" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="tahoma" data-colorscheme="dark" data-action="recommend"></div>
+           </li>
           </ul>
-        </div>
+          
 		  </div>
 		</div>
 	</div>
