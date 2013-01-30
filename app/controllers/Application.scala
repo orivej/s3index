@@ -116,7 +116,7 @@ object Application extends Controller {
     }).as("text/javascript")
   }
 
-  def api() = Action {
+  def api1() = Action {
     Ok(views.html.api(globals.settings.backreferenceUrl.toString())).as("text/javascript")
   }
 

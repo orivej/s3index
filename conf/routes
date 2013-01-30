@@ -18,6 +18,6 @@ POST    /properties                    controllers.Application.setProperties
 
 GET    /jsonp                    controllers.Application.jsonp(indexid: String, prefix: String, marker: String, callback: String)
 
-GET    /api                    controllers.Application.api
+GET    /api1                    controllers.Application.api1
 
 GET    /preview                controllers.Application.preview(template: String, filesformat: String)

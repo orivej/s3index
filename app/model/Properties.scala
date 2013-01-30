@@ -11,8 +11,9 @@ class Properties(val bucketName: String = "",
   val filesListFormat: FilesListFormat = Standard,
   val maxKeys: Int = 1000,
   val excludedPaths: Set[String] = Set(),
-  val includedPaths: Set[String] = Set()) {
-
+  val includedPaths: Set[String] = Set(),
+  val apiVersion: Int = 1) {
+  
   def update(parameters: Map[String, Seq[String]]): Properties = {
     new Properties(
       parameters.getOrElse("bucketName", Seq(this.bucketName))(0),
@@ -30,7 +31,8 @@ class Properties(val bucketName: String = "",
         "excludeKey" -> Json.toJson(excludedPaths.toSeq),
         "template" -> Json.toJson(template.toString()),
         "maxKeys" -> Json.toJson(maxKeys),
-        "filesformat" -> Json.toJson(filesListFormat.toString())))
+        "filesformat" -> Json.toJson(filesListFormat.toString()),
+        "apiversion" -> Json.toJson(apiVersion.toString)))
   }
   
   def toId(): String = {
@@ -38,13 +40,14 @@ class Properties(val bucketName: String = "",
   }
   
   override def toString: String = {
-    "[bucketName: %s, template: %s, filesListFormat: %s, maxKeys: %s, excludedPaths: %s, includedPaths: %s".format(
+    "[bucketName: %s, template: %s, filesListFormat: %s, maxKeys: %s, excludedPaths: %s, includedPaths: %s, apiVersion: %d".format(
         bucketName,
         template,
         filesListFormat,
         maxKeys,
         excludedPaths,
-        includedPaths
+        includedPaths,
+        apiVersion
         )
   }
 
@@ -76,6 +79,10 @@ object Properties {
     (json \ "includeKey").asOpt[Seq[String]] match {
       case None => Set.empty[String]
       case Some(s) => s.toSet
+    },
+    (json \ "apiversion").asOpt[Int] match {
+      case None => 1
+      case Some(i) => i
     }
     )
   }
