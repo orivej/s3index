@@ -16,7 +16,9 @@ object S3IndexBuild extends Build {
 	"org.scalatest" % "scalatest_2.9.2" % "1.8" % "test",
 	"commons-lang" % "commons-lang" % "2.6",
 	"com.googlecode.htmlcompressor" % "htmlcompressor" % "1.5.2",
-	"rhino" % "js" % "1.7R2"
+	"rhino" % "js" % "1.7R2",
+	"com.yahoo.platform.yui" % "yuicompressor" % "2.4.7",
+	"com.google.javascript" % "closure-compiler" % "r2388"
     ) 
     
     lazy val root = PlayProject("s3index", appVersion, appDependencies, mainLang = SCALA).settings(defaultScalaSettings:_*).settings( 

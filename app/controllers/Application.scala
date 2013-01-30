@@ -30,13 +30,18 @@ import com.codeminders.scalaws.s3.model.StorageClass
 import org.apache.commons.lang.StringUtils
 import com.codeminders.scalaws.AmazonServiceException
 import com.codeminders.scalaws.AmazonClientException
+import com.yahoo.platform.yui.compressor.JavaScriptCompressor
+import com.yahoo.platform.yui.compressor.YUICompressor
+import com.googlecode.htmlcompressor.compressor.ClosureJavaScriptCompressor
 
 object Application extends Controller {
 
   private val s3Client = AWSS3()
 
   private val htmlCompressor = new HtmlCompressor()
-
+  
+  private val javascriptCompressor = new ClosureJavaScriptCompressor
+  
   htmlCompressor.setRemoveIntertagSpaces(true)
 
   private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString())
@@ -46,6 +51,8 @@ object Application extends Controller {
   private val viewPropertiesPageTemplate = views.html.pages.viewProperties(globals.settings)(_, _)
   
   private val finalPageTemplate = views.html.pages.finalPage(globals.settings)(_)
+  
+  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
@@ -117,7 +124,7 @@ object Application extends Controller {
   }
 
   def api1() = Action {
-    Ok(views.html.api(globals.settings.backreferenceUrl.toString())).as("text/javascript")
+    Ok(compressedAPI1).as("text/javascript")
   }
 
   def properties = Action {
