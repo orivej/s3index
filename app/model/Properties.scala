@@ -35,10 +35,6 @@ class Properties(val bucketName: String = "",
         "apiversion" -> Json.toJson(apiVersion.toString)))
   }
   
-  def toId(): String = {
-    new Base64().encodeToString(new Compressor().compress(Json.stringify(toJSON())))
-  }
-  
   override def toString: String = {
     "[bucketName: %s, template: %s, filesListFormat: %s, maxKeys: %s, excludedPaths: %s, includedPaths: %s, apiVersion: %d".format(
         bucketName,
@@ -54,6 +50,8 @@ class Properties(val bucketName: String = "",
 }
 
 object Properties {
+  
+  private val idCompressor = new Compressor(globals.settings.idEncryptionKey)
   
   def apply(json: JsValue): Properties = {
     new Properties((json \ "bucketName").asOpt[String] match {
@@ -87,7 +85,11 @@ object Properties {
     )
   }
   
+  def toId(p: Properties): String = {
+    new Base64().encodeToString(idCompressor.compressAndEncrypt(Json.stringify(p.toJSON())))
+  }
+  
   def fromId(pid: String): Properties = {
-    apply(Json.parse(new Compressor().decompressToString(new Base64().decode(pid))))
+    apply(Json.parse(idCompressor.decryptAndDecompress(new Base64().decode(pid))))
   }
 }

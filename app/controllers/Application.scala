@@ -39,20 +39,21 @@ object Application extends Controller {
   private val s3Client = AWSS3()
 
   private val htmlCompressor = new HtmlCompressor()
-  
+
   private val javascriptCompressor = new ClosureJavaScriptCompressor
-  
+
   htmlCompressor.setRemoveIntertagSpaces(true)
 
   private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString())
-  
+
   private val generalPropertiesPageTemplate = views.html.pages.generalProperties(globals.settings)
-  
+
   private val viewPropertiesPageTemplate = views.html.pages.viewProperties(globals.settings)(_, _)
-  
+
   private val finalPageTemplate = views.html.pages.finalPage(globals.settings)(_)
-  
-  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
+
+//  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
+  private val compressedAPI1 = views.html.api1(globals.settings.backreferenceUrl.toString()).body
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
@@ -75,7 +76,7 @@ object Application extends Controller {
         val uuid = getOrInitializeUUID(request)
         val properties = getOrInitializeProperties(uuid)
         Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
-        Ok(finalPageTemplate(properties.toId()))
+        Ok(finalPageTemplate(Properties.toId(properties)))
       }
   }
 
@@ -109,18 +110,25 @@ object Application extends Controller {
   }
 
   def jsonp(indexId: String, prefix: String, marker: String, callback: String) = Action {
-    Logger.debug(Seq("indexId -> " + indexId, "prefix -> " + prefix, "marker -> " + marker, "callback -> " + callback).mkString(", "))
-    Ok(Cache.getOrElse[Html]("%s.%s.%s".format(indexId, prefix, marker)) {
-      Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try {
-        val properties = Properties.fromId(indexId)
-        Logger.debug("Cache miss, properties -> " + properties)
-        val index = indexGenerator.generate(properties, prefix, marker).body
-        htmlCompressor.compress(index)
-      } catch {
-        case e: AmazonServiceException => views.html.templates.error("S3 request failed: " + e.message).body
-        case e: Throwable => views.html.templates.error("Oops, an iternal error occured. Please try again later.").body
-      }), callback))
-    }).as("text/javascript")
+    request =>
+      Logger.debug(Seq("indexId -> " + indexId, "prefix -> " + prefix, "marker -> " + marker, "callback -> " + callback).mkString(", "))
+      Ok(Cache.getOrElse[Html]("%s.%s.%s".format(indexId, prefix, marker)) {
+        Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try {
+          val properties = Properties.fromId(indexId)
+          Logger.debug("Cache miss, properties -> " + properties)
+          val index = indexGenerator.generate(properties, prefix, marker).body
+          htmlCompressor.compress(index)
+        } catch {
+          case e: AmazonServiceException => {
+            Logger.error("Could not process request %s".format(request), e)
+            views.html.templates.error("S3 request failed: " + e.message).body
+          }
+          case e: Throwable => {
+            Logger.error("Could not process request %s".format(request), e)
+            views.html.templates.error("Oops, an iternal error occured. Please try again later.").body
+          }
+        }), callback))
+      }).as("text/javascript")
   }
 
   def api1() = Action {
