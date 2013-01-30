@@ -138,17 +138,12 @@ object Application extends Controller {
         val validator = new PropertiesValidator(parameters).
           isLengthInRange("bucketName", 3 to 63).
           matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-]*""").
-          isNumber("depthLevel").
-          isNumberInRange("depthLevel", 1 to 100).
           isNumber("maxKeys").
-          isNumberInRange("maxKeys", 1 to Int.MaxValue).
+          isNumberInRange("maxKeys", 1 to 2000000000).
           isLengthInRange("excludeKey", 1 to 1024).
           isLengthInRange("includeKey", 1 to 1024).
-          isLengthInRange("customCSS", 1 to 1024).
           oneOf("template", Template.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
-          oneOf("outputTo", List("ZipArchive", "Bucket")).
-          isLengthInRange("accessKeyID", 1 to 255).
-          isLengthInRange("secretAccessKey", 1 to 255)
+          oneOf("filesformat", FilesListFormat.values.foldLeft(List[String]())((l, v) => v.toString() :: l))
 
         if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
         else {
