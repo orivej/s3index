@@ -11,16 +11,13 @@ import javax.crypto.spec.PBEKeySpec
 
 class Compressor(encryptionKey: String) {
   
-  private val asciiSymbols = 'a' to 'z'
-  private val numbers = '0' to '9'
-
   private val key = {
     val factory = SecretKeyFactory.getInstance("PBEWithMD5AndDES")
-    val spec = new PBEKeySpec(encryptionKey.toCharArray(), generateRandomString(4).getBytes(), 1024, 256)
+    val spec = new PBEKeySpec(encryptionKey.toCharArray(), "s3index2013".getBytes(), 1024, 256)
     new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "DES")
   }
   
-  private val ivBytes = new IvParameterSpec(generateRandomString(8).getBytes("UTF-8"))
+  private val ivBytes = new IvParameterSpec("s3_index".getBytes("UTF-8"))
 
   def compress(bytesToCompress: Array[Byte]): Array[Byte] = {
     val deflater: Deflater = new Deflater();
@@ -90,16 +87,4 @@ class Compressor(encryptionKey: String) {
     new String(bytesDecompressed, 0, bytesDecompressed.length, "UTF-8");
   }
   
-  private def generateRandomString(len: Int): String = {
-    val res = (0 until len).foldLeft("") {
-      (s, i) =>
-        val r = math.abs(Random.nextInt() % 8)
-        r % 2 match {
-          case 0 => s + asciiSymbols(r)
-          case 1 => s + numbers(r)
-        }
-    }
-    res
-  }
-
 }

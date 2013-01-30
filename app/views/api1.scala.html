@@ -32,10 +32,10 @@ var S3Index = {
     },
     success : null
   },
-
+  
   load: function(prefix, marker) {
-    prefix = prefix || ''
-    marker = marker || ''
+    prefix = prefix || '';
+    marker = marker || '';
     var indexid = document.getElementById('s3index-root').getAttribute('indexid');
     if(!indexid) return;
     S3Index.JSONP.getJSON("@backReference/jsonp", function(data) {
