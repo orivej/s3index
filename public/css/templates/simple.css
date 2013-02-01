@@ -3,44 +3,61 @@
   border-style: solid;
   border-collapse: collapse;
 }
-#s3index-root th,td {
+
+#s3index-root th, #s3index-root td {
   border-width: 1px;
   border-style: solid;
   text-align: left;
   vertical-align: bottom;
   padding: 5px;
 }
+
 #s3index-root .file a:link {
   text-decoration: none;
 }
+
 #s3index-root .dir a:link {
   text-decoration: underline;
   font-weight: bold;
 }
+
 #s3index-root .back a:link {
   text-decoration: none;
   font-weight: bold;
 }
+
 #s3index-root hr {
   height: 0px;
   border: none;
 }
+
 #s3index-root .title {
   font-size: 24px;
   font-weight: bold;
   font-family: "Times New Roman", Times, serif;
 }
+
 #s3index-root .footer {
   font-size: 8px;
   font-weight: normal;
-  float: right;
-  font-family: "Times New Roman", Times, serif;
-}
-#s3index-root .nav .next {
-  float: right;
-  margin-left: 10px;
-}
-#s3index-root .prev {
   float: left;
-  margin-right: 10px;
+  font-family: "Times New Roman", Times, serif;
+  margin-top: 10px;
+}
+
+#s3index-root .nav table {
+	border: none;
+	margin-top: 10px;
+}
+
+#s3index-root .nav th, #s3index-root .nav td {
+  border: none;
+  text-align: center;
+  vertical-align: middle;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#s3index-root .nav .current {
+  font-weight: bold;
 }

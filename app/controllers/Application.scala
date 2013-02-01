@@ -44,7 +44,7 @@ object Application extends Controller {
 
   htmlCompressor.setRemoveIntertagSpaces(true)
 
-  private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString())
+  private val indexGenerator = new IndexGenerator(s3Client, globals.settings.backreferenceUrl.toString(), 20)
 
   private val generalPropertiesPageTemplate = views.html.pages.generalProperties(globals.settings)
 
@@ -105,8 +105,7 @@ object Application extends Controller {
       Seq("January/", "February/"),
       Template.withName(template),
       FilesListFormat.withName(fileListFormat),
-      "",
-      ""))
+      (1, Array.empty[Int])))
   }
 
   def jsonp(indexId: String, prefix: String, marker: String, callback: String) = Action {
@@ -116,7 +115,7 @@ object Application extends Controller {
         Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try {
           val properties = Properties.fromId(indexId)
           Logger.debug("Cache miss, properties -> " + properties)
-          val index = indexGenerator.generate(properties, prefix, marker).body
+          val index = indexGenerator.generate(properties, prefix, marker.toInt).body
           htmlCompressor.compress(index)
         } catch {
           case e: AmazonServiceException => {

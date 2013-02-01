@@ -1,28 +1,52 @@
 #s3index-root table {
   border: none;
 }
-#s3index-root th,td {
+
+#s3index-root th,#s3index-root td {
   border: none;
   text-align: left;
   vertical-align: bottom;
-  padding-right: 10px;
+  padding-right: 40px;
 }
+
+#s3index-root th {
+	color: rgb(65, 65, 65);
+}
+
 #s3index-root .title {
   font-size: 24px;
   font-weight: bold;
   font-family: "Times New Roman", Times, serif;
 }
+
 #s3index-root .footer {
   font-size: 8px;
   font-weight: normal;
   float: right;
   font-family: "Times New Roman", Times, serif;
 }
-#s3index-root .nav .next {
-	float: right;
-  margin-left: 10px;
+
+#s3index-root hr {
+	height: 1px;
+	border: 0;
+	background-color: rgb(220, 220, 220);
 }
-#s3index-root .prev {
-	float: left;
-  margin-right: 10px;
+
+#s3index-root .nav table {
+  border: none;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#s3index-root .nav th, #s3index-root .nav td {
+  border: none;
+  text-align: center;
+  vertical-align: middle;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#s3index-root .nav .current {
+  font-weight: bold;
 }

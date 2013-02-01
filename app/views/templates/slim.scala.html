@@ -1,4 +1,4 @@
-@(directory: String, data: Seq[Seq[Html]], prev: Option[Html], next: Option[Html], footer: Html, backreference: String)
+@(directory: String, data: Seq[Seq[Html]], index: Seq[Html], footer: Html, backreference: String)
 
 <link rel="stylesheet" media="screen" href="@backreference@routes.Assets.at("css/templates/slim.css")">
 <style type="text/css">
@@ -30,7 +30,8 @@
 	@if(!data(0).isEmpty){
 	<tr>
 		@for(header <- data(0)){
-		<th>@header</th> }
+		  <th>@header</th> 
+		}
 	</tr>
 	}
 	<hr />
@@ -43,16 +44,17 @@
 	}
 </table>
 }
+@if(index.size > 1){
 <div class="nav">
-@prev match {
-  case None => {}
-  case Some(h) => {<span class="prev">@h</span>}  
-}
-@next match {
-  case None => {}
-  case Some(h) => {<span class="next">@h</span>}  
-}
+  <table>
+    <tr valign="top">
+      @for(idx <- index){
+         <td>@idx</td>
+      }
+    </tr>
+  </table>
 </div>
+}
 <br>
 <hr>
 <div class="footer">@footer</div>
