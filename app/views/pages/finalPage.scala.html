@@ -1,4 +1,4 @@
-@(applicationSettings: model.ApplicationSettings)(id: String)
+@(applicationSettings: model.ApplicationSettings)(properties: String)
 
 @main(applicationSettings) {
 } {
@@ -24,9 +24,9 @@
 			<i id="messageIcon" class="icon-info-sign"></i>
 			<strong>Your Code:</strong> <br/>
 				  Include the JavaScript SDK on your page once, ideally right after the opening &lt;body&gt; tag.
-				<pre>&lt;div&nbsp;id=&quot;s3index-root&quot;&nbsp;indexid=&quot;@id&quot;&gt;&lt;/div&gt;</pre>
+				<pre>&lt;div&nbsp;id=&quot;s3index-root&quot;&gt;&lt;/div&gt;</pre>
 				  Place the code for your index wherever you want the index to appear on your page.
-				<pre><code>&lt;script&nbsp;src=&quot;@applicationSettings.backreferenceUrl.toString()/api1&quot;&nbsp;type=&quot;text/javascript&quot;&gt;&lt;/script&gt;&lt;script&gt;(function()&nbsp;{S3Index.init()}());&lt;/script&gt;</code></pre>
+				<pre><code>&lt;script&nbsp;src=&quot;@applicationSettings.backreferenceUrl.toString()/api1&quot;&nbsp;type=&quot;text/javascript&quot;&gt;&lt;/script&gt;&lt;script&gt;(function()&nbsp;{S3Index.init(@properties)}());&lt;/script&gt;</code></pre>
 			</div>
 		</div>
   }

@@ -42,7 +42,7 @@ var S3Index = {
     return v > 4 ? v : undef;
   },
   
-  init: function(){
+  init: function(properties){
    if (!("onhashchange" in window) || S3Index.ie || S3Index.ie < 8)  {
         var prevHash = window.location.hash;
         var oldHref = location.href;
@@ -54,22 +54,20 @@ var S3Index = {
             }
         }, 100);
     } else if (window.addEventListener) {
-      window.addEventListener("hashchange", S3Index.load, false);
+      window.addEventListener("hashchange", S3Index.load(properties), false);
     } else if (window.attachEvent) {
-      window.attachEvent("onhashchange", S3Index.load);    
+      window.attachEvent("onhashchange", S3Index.load(properties));    
     }
-    S3Index.load()
+    S3Index.load(properties)
   },
   
-  load: function() {
-    var prefix = S3Index.prefix(window.location.hash);
-    var marker = S3Index.marker(window.location.hash) || '1';
-    var location = window.location
-    var indexid = document.getElementById('s3index-root').getAttribute('indexid');
-    if(!indexid) return;
+  load: function(properties) {
+    if(!properties) return;
+    properties['prefix'] = S3Index.prefix(window.location.hash);
+    properties['marker'] = S3Index.marker(window.location.hash) || '1';
     S3Index.JSONP.getJSON("@backReference/jsonp", function(data) {
       document.getElementById('s3index-root').innerHTML = data.html
-    }, {'indexid' : indexid, 'prefix' : prefix, 'marker': marker }  );    
+    }, properties  );    
   },
   
   prefix: function(hash){

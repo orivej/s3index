@@ -16,6 +16,8 @@ import akka.actor.Props
 import com.codeminders.scalaws.s3.AWSS3
 import play.mvc.Result
 import views.html.defaultpages.notFound
+import model.S3IndexException
+import model.InternalError
 
 object Global extends GlobalSettings {
   

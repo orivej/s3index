@@ -12,6 +12,5 @@ class ApplicationSettings(configuration: play.api.Configuration) {
   lazy val aboutBrandLink: String = configuration.getString("s3index.view.aboutBrandLink").getOrElse("http://code.google.com/p/s3index/")
   lazy val contactBrandLink: String = configuration.getString("s3index.view.contactBrandLink").getOrElse("http://code.google.com/p/s3index/")
   lazy val yearUpdated: String = configuration.getString("s3index.view.yearUpdated").getOrElse("2012")
-  lazy val idEncryptionKey: String = configuration.getString("s3index.idEncryptionKey").getOrElse("D56E765A")
 
 }

@@ -55,12 +55,13 @@
 } {
   <script type="text/javascript">
       $(document).ready(function() {
+        registerSpinner();
         registerClonable();
-        registerFormSubmitButton('back', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-        registerFormSubmitButton('done', '@routes.Application.properties', '@routes.Application.finalPage')
-        registerFormSubmitButton('propertiesPageLink', '@routes.Application.properties', '@routes.Application.generalPropertiesPage')
-        registerFormSubmitButton('finalPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
-        loadProperties('@routes.Application.properties')
+        getProperties('@routes.Application.properties')
+        $('#back').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.generalPropertiesPage'})})
+        $('#done').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
+        $('#propertiesPageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.generalPropertiesPage'})})
+        $('#finalPageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
         $("#resizable").resizable({ animate: false, ghost: true });
         $("#done", document.forms[0]).focus();
       });

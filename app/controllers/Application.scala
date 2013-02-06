@@ -6,6 +6,7 @@ import play.api.mvc._
 import play.api.cache._
 import play.api.cache.Cache
 import model._
+import S3IndexException._
 import play.api.libs.json._
 import java.util.Random
 import play.api.GlobalSettings
@@ -52,7 +53,17 @@ object Application extends Controller {
 
   private val finalPageTemplate = views.html.pages.finalPage(globals.settings)(_)
 
-//  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
+  private val propertiesValidator = new PropertiesValidator().
+    isLengthInRange("bucketName", 3 to 63).
+    matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-]*""", "The value of this parameter should conform with DNS requirements.").
+    isNumber("maxKeys").
+    isNumberInRange("maxKeys", 1 to 2000000000).
+    isLengthInRange("excludeKey", 1 to 1024).
+    isLengthInRange("includeKey", 1 to 1024).
+    oneOf("template", Template.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
+    oneOf("filesformat", FilesListFormat.values.foldLeft(List[String]())((l, v) => v.toString() :: l))
+
+  //  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
   private val compressedAPI1 = views.html.api1(globals.settings.backreferenceUrl.toString()).body
 
   def index = Action {
@@ -76,7 +87,7 @@ object Application extends Controller {
         val uuid = getOrInitializeUUID(request)
         val properties = getOrInitializeProperties(uuid)
         Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
-        Ok(finalPageTemplate(Properties.toId(properties)))
+        Ok(finalPageTemplate(properties.toJSON.toString))
       }
   }
 
@@ -108,26 +119,47 @@ object Application extends Controller {
       (1, Array.empty[Int])))
   }
 
-  def jsonp(indexId: String, prefix: String, marker: String, callback: String) = Action {
+  def jsonp = Action {
     request =>
-      Logger.debug(Seq("indexId -> " + indexId, "prefix -> " + prefix, "marker -> " + marker, "callback -> " + callback).mkString(", "))
-      Ok(Cache.getOrElse[Html]("%s.%s.%s".format(indexId, prefix, marker)) {
-        Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(try {
-          val properties = Properties.fromId(indexId)
-          Logger.debug("Cache miss, properties -> " + properties)
-          val index = indexGenerator.generate(properties, prefix, marker.toInt).body
-          htmlCompressor.compress(index)
-        } catch {
-          case e: AmazonServiceException => {
-            Logger.error("Could not process request %s".format(request), e)
-            views.html.templates.error("S3 request failed: " + e.message).body
-          }
-          case e: Throwable => {
-            Logger.error("Could not process request %s".format(request), e)
-            views.html.templates.error("Oops, an iternal error occured. Please try again later.").body
-          }
-        }), callback))
-      }).as("text/javascript")
+      val callback = request.queryString.getOrElse("callback", Seq("S3Index.JSONP.success"))(0)
+      try {
+        val prefix = request.queryString.getOrElse("prefix", Seq(""))(0)
+        val marker = request.queryString.getOrElse("marker", Seq(""))(0)
+
+        val json = Json.toJson(request.queryString.filter(!_._2.isEmpty).map {
+          e =>
+            (e._1 -> (e._2 match {
+              case Seq(s) => Json.toJson(s)
+              case Seq(x, xs @ _*) => Json.toJson(e._2)
+            }))
+        })
+        propertiesValidator.validate(json)
+        val properties = Properties(json)
+        Ok(Cache.getOrElse[Html]("%s.%s.%s".format(properties.toId, prefix, marker)) {
+          Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(
+            try {
+              Logger.debug("Cache miss, properties -> " + properties)
+              val index = indexGenerator.generate(properties, prefix, marker.toInt).body
+              htmlCompressor.compress(index)
+            } catch {
+              case e: AmazonServiceException => {
+                Logger.error("Could not process request %s".format(request), e)
+                views.html.templates.error("S3 request failed: " + e.message).body
+              }
+            }), callback))
+        }).as("text/javascript")
+      } catch {
+        case e: PropertiesValidationError => {
+          Logger.error(e.getMessage, e)
+          Ok(Html("""var data = {"html": "%s"}; %s(data);""".format(
+            StringEscapeUtils.escapeJavaScript(views.html.templates.error(e.errors.toString).body), callback)))
+        }
+        case e: Throwable => {
+          Logger.error("Could not process request %s".format(request), e)
+          Ok(Html("""var data = {"html": "%s"}; %s(data);""".format(
+            StringEscapeUtils.escapeJavaScript(views.html.templates.error("Oops, an iternal error occured. Please try again later.").body), callback)))
+        }
+      }
   }
 
   def api1() = Action {
@@ -140,47 +172,35 @@ object Application extends Controller {
       val properties = getOrInitializeProperties(uuid)
       Logger.debug("UUID -> " + uuid.toString() + ", " + "properties -> " + properties.toString())
 
-      Ok(properties.toJSON())
+      Ok(properties.toJSON()).withSession(request.session + ("uuid" -> uuid))
   }
 
-  def setProperties = Action {
+  def validateProperties() = Action {
     request =>
+      val json = request.body.asJson.getOrElse(throw new Exception("Could not parse empty POST request"))
       try {
-        val uuid = getOrInitializeUUID(request)
-        val parameters = request.body.asFormUrlEncoded.getOrElse(throw new InternalError(Json.toJson("Please specify at least one parameter"), "Request body should not be empty"))
-        Logger.debug("parameters -> " + parameters.toString())
-        val validator = new PropertiesValidator(parameters).
-          isLengthInRange("bucketName", 3 to 63).
-          matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-]*""").
-          isNumber("maxKeys").
-          isNumberInRange("maxKeys", 1 to 2000000000).
-          isLengthInRange("excludeKey", 1 to 1024).
-          isLengthInRange("includeKey", 1 to 1024).
-          oneOf("template", Template.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
-          oneOf("filesformat", FilesListFormat.values.foldLeft(List[String]())((l, v) => v.toString() :: l))
-
-        if (validator.anyErrors) throw new BadRequestError(validator.toJSON(), "Form validation errors: " + validator.toString)
-        else {
-          val oldProperties = getOrInitializeProperties(uuid)
-          val newProperties = oldProperties.update(parameters)
-          if (oldProperties.bucketName != newProperties.bucketName) {
-            try {
-              s3Client(newProperties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
-            } catch {
-              case e: AmazonServiceException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.message)))), e.message)
-              case e: AmazonClientException => throw new BadRequestError(Json.toJson(Seq(Json.toJson(Map("elementId" -> "bucketName", "errorMessage" -> e.getMessage)))), e.getMessage)
-            }
-          }
-          updateProperties(uuid, newProperties)
-        }
-
-        Ok("OK").withSession(
-          request.session + ("uuid" -> uuid))
-
+        propertiesValidator.validate(json)
+        val properties = new Properties().update(json)
+        s3Client(properties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
+        Ok(Json.toJson(""))
       } catch {
-        case e: S3IndexException => {
-          BadRequest(e.response)
-        }
+        case e: AmazonServiceException => Ok(Json.toJson(Map("bucketName" -> "Please make sure that the name of the bucket is correct: %s".format(Json.toJson(e.message)))))
+        case e: AmazonClientException => Ok(Json.toJson(Map("bucketName" -> "Please make sure that the name of the bucket is correct: %s".format(Json.toJson(e.getMessage())))))
+        case e: PropertiesValidationError => BadRequest(e.errors)
+      }
+  }
+
+  def setProperties() = Action {
+    request =>
+      val uuid = getOrInitializeUUID(request)
+      try {
+        val json = request.body.asJson.getOrElse(throw new Exception("Could not parse empty POST request"))
+        propertiesValidator.validate(json)
+        val np = getOrInitializeProperties(uuid).update(json)
+        updateProperties(uuid, np)
+        Ok(Json.toJson("")).withSession(request.session + ("uuid" -> uuid))
+      } catch {
+        case e: PropertiesValidationError => BadRequest(e.errors).withSession(request.session + ("uuid" -> uuid))
       }
   }
 

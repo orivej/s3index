@@ -19,7 +19,10 @@
 				<!-- Bucket Name -->
 				<label>Specify a name of your bucket. This parameter is mandatory</label>
 				<div class="control-group">
+				  <div class="input-append control-group">
 					<input type="text" name="bucketName" class="input-large form-error" placeholder="mybucket">
+					<button class="btn" id="validateBucket" type="button">Validate</button>
+					</div>
 				</div>
 				<hr />
 				<!-- Exclude Keys -->
@@ -44,7 +47,7 @@
 						</div>
 						<a href="#" id="includeKeyAddButton" class="clonable-add-button"><i class="icon-plus"></i> Add</a>
 					</div>
-				</div>				
+				</div>
 				<hr />
 				<!-- Next -->
 				<button id="next" type="submit" class="btn btn-large btn-primary">Next <i class="icon-chevron-right icon-white"></i></button>
@@ -52,16 +55,19 @@
 				<a class="btn btn-large" href="#" id="done">Done <i class="icon-ok"></i></a>
 			</fieldset>
 		</form>
+		
   }
 } {
   <script type="text/javascript">
     $(document).ready(function() {
+      registerSpinner();
       registerClonable();
-      registerFormSubmitButton('next', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
-      registerFormSubmitButton('done', '@routes.Application.properties', '@routes.Application.finalPage')
-      registerFormSubmitButton('templatePageLink', '@routes.Application.properties', '@routes.Application.viewPropertiesPage')
-      registerFormSubmitButton('finalPageLink', '@routes.Application.properties', '@routes.Application.finalPage')
-      loadProperties('@routes.Application.properties')
+      getProperties('@routes.Application.properties')
+      $('#next').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.viewPropertiesPage'})})
+      $('#done').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
+      $('#templatePageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.viewPropertiesPage'})})
+      $('#finalPageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
+      $('#validateBucket').click(function() {postProperties('@routes.Application.validateProperties')})
       $("input[type='text']:first", document.forms[0]).focus(); 
     });
 

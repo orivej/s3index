@@ -1,3 +1,20 @@
+$.fn.serializeObject = function()
+{
+    var o = {};
+    var a = this.serializeArray();
+    $.each(a, function() {
+        if (o[this.name] !== undefined) {
+            if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+            }
+            o[this.name].push(this.value || '');
+        } else {
+            o[this.name] = this.value || '';
+        }
+    });
+    return o;
+};
+
 function clone(element, container) {
 	var num = container.children().length;
 	var newNum = new Number(num);
@@ -27,63 +44,86 @@ function registerClonable() {
 	});
 }
 
-function registerFormSubmitButton(buttonId, targetUrl, nextPageUrl) {
-	registerSpinner()
-	$('#' + buttonId).click(
-			function(event) {
-				//cleanup
-				$('.s3index-error-msg').each(function(index) {
-					$(this).remove();
-				});
-				$('.error').each(function(index) {
-					$(this).removeClass('error');
-				});
-				//submit form
-				var $form = $("form"),
-				$inputs = $form.find("input:not(:disabled), select:not(:disabled), button:not(:disabled), textarea:not(:disabled)"),
-				serializedData = $form.serialize();
-				
-				$('input[type=checkbox]').each(function() {     
-				    if (this.checked) {
+function postProperties(targetUrl, successHandler, errorHandler) {
+  
+  errorHandler = errorHandler || parseBadRequestErrors
+  successHandler = successHandler || parseBadRequestWarnings
+  
+  // cleanup
+  $('.s3index-error-msg').each(function(index) {
+    $(this).remove();
+  });
+  $('.error').each(function(index) {
+    $(this).removeClass('error');
+  });
+  $('.warning').each(function(index) {
+    $(this).removeClass('warning');
+  });
+  // submit form
+  var $form = $("form"), $inputs = $form.find("input:not(:disabled), select:not(:disabled), button:not(:disabled), textarea:not(:disabled)"), serializedData = $form.serializeObject()
 
-				    }
-				    else {
-				      serializedData += '&'+this.name+'=off';
-				    }
-				});
+  $inputs.attr("disabled", "disabled");
 
-				$inputs.attr("disabled", "disabled");
+  post(targetUrl, serializedData, successHandler, errorHandler, function() {$inputs.removeAttr("disabled")})
+}
 
-				$.ajax({
-					url : targetUrl,
-					type : "post",
-					data : serializedData,
-					timeout: 10000,
-					success : function(response, textStatus, jqXHR) {
-						window.location.href = nextPageUrl
-					},
-					error : function(jqXHR, textStatus, errorThrown) {
-					  console.log("Error: " + errorThrown + ", json=" + jqXHR.responseText + ", status=" + textStatus);
-					  try
-					  {
-					    var responseJSON = jQuery.parseJSON(jqXHR.responseText);
-                        $.each(responseJSON, function (i, err) {
-                          $('.control-group').has('input[name="' + err.elementId + '"]').addClass('error')
-                          $('.control-group').has('input[name="' + err.elementId + '"]').append('<span class="s3index-error-msg help-inline">' + err.errorMessage + '</span>');
-                        });
-					  }
-					  catch(e)
-					  {
-					    if(!jqXHR.responseText) displayContent(e);
-					    else displayContent(jqXHR.responseText);
-					  }
-					},
-					complete : function() {
-						$inputs.removeAttr("disabled");
-					}
-				});
-				event.preventDefault();
-			});
+function post(targetUrl, data, successHandler, errorHandler, completeHandler){
+  $.ajax({
+    url : targetUrl,
+    type : "post",
+    data : JSON.stringify(data),
+    contentType: "application/json; charset=utf-8",
+    dataType: "json",
+    timeout : 10000,
+    success : function(response, textStatus, jqXHR) {
+      successHandler(jqXHR.responseText)
+    },
+    error : function(jqXHR, textStatus, errorThrown) {
+      errorHandler(jqXHR.responseText)
+    },
+    complete : function() {
+      completeHandler();
+    }
+  });
+  event.preventDefault();
+}
+
+function parseBadRequestErrors(json){
+  parseBadRequest(json, 'error');
+}
+
+function parseBadRequestWarnings(json){
+  parseBadRequest(json, 'warning');
+}
+
+function parseBadRequest(json, errorClassName){
+  var errorClassName = errorClassName || 'error'
+  if(json){
+    try {
+      $.each(jQuery.parseJSON(json), function(elementId, errorMessage) {
+        if(elementId && errorMessage){
+          $('.control-group').has('input[name="' + elementId + '"]').addClass(errorClassName)
+          $('.control-group').has('input[name="' + elementId + '"]').append('<span class="s3index-error-msg help-inline">' + errorMessage + '</span>');
+        }
+      });
+    } catch (e) {
+      if (!json)
+        displayContent(e);
+      else
+        displayContent(json);
+    }
+  }
+}
+
+function getProperties(url) {
+  loadData(url,
+    function(responseText) {
+      applyProperties(jQuery.parseJSON(responseText))
+    },
+    function(responseText) {
+      displayContent(responseText);
+    }
+  );
 }
 
 function registerSpinner(){
@@ -111,26 +151,11 @@ function registerSpinner(){
 		});
 }
 
-function loadProperties(url) {
-  $.ajax({
-    url : url,
-    cache : false,
-    success : function(response, textStatus, jqXHR) {
-      console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
-      applyProperties(jQuery.parseJSON(jqXHR.responseText))
-    },
-    error : function(jqXHR, textStatus, errorThrown) {
-      displayContent(responseText);
-    }
-  });
-}
-
 function loadData(url, success, failure) {
   $.ajax({
     url : url,
     cache : false,
     success : function(response, textStatus, jqXHR) {
-      console.log("Resp: " + response + ", json=" + jqXHR.responseText + ", status=" + textStatus);
       success(jqXHR.responseText)
     },
     error : function(jqXHR, textStatus, errorThrown) {
