@@ -46,19 +46,22 @@ function registerClonable() {
 
 function postProperties(targetUrl, successHandler, errorHandler) {
   
-  errorHandler = errorHandler || parseBadRequestErrors
-  successHandler = successHandler || parseBadRequestWarnings
+  errorHandler = errorHandler || postPropertiesErrorHandler
+  successHandler = successHandler || postPropertiesSuccessHandler
   
-  // cleanup
   $('.s3index-error-msg').each(function(index) {
     $(this).remove();
   });
   $('.error').each(function(index) {
     $(this).removeClass('error');
   });
-  $('.warning').each(function(index) {
-    $(this).removeClass('warning');
+  $('.info').each(function(index) {
+    $(this).removeClass('error');
   });
+  $('.warning').each(function(index) {
+    $(this).removeClass('error');
+  });
+  
   // submit form
   var $form = $("form"), $inputs = $form.find("input:not(:disabled), select:not(:disabled), button:not(:disabled), textarea:not(:disabled)"), serializedData = $form.serializeObject()
 
@@ -88,21 +91,16 @@ function post(targetUrl, data, successHandler, errorHandler, completeHandler){
   event.preventDefault();
 }
 
-function parseBadRequestErrors(json){
-  parseBadRequest(json, 'error');
+function postPropertiesSuccessHandler(json){
 }
 
-function parseBadRequestWarnings(json){
-  parseBadRequest(json, 'warning');
-}
-
-function parseBadRequest(json, errorClassName){
-  var errorClassName = errorClassName || 'error'
+function postPropertiesErrorHandler(json){
+  //cleanup
   if(json){
     try {
       $.each(jQuery.parseJSON(json), function(elementId, errorMessage) {
         if(elementId && errorMessage){
-          $('.control-group').has('input[name="' + elementId + '"]').addClass(errorClassName)
+          $('.control-group').has('input[name="' + elementId + '"]').addClass('error')
           $('.control-group').has('input[name="' + elementId + '"]').append('<span class="s3index-error-msg help-inline">' + errorMessage + '</span>');
         }
       });

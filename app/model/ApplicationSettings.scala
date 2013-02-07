@@ -12,5 +12,6 @@ class ApplicationSettings(configuration: play.api.Configuration) {
   lazy val aboutBrandLink: String = configuration.getString("s3index.view.aboutBrandLink").getOrElse("http://code.google.com/p/s3index/")
   lazy val contactBrandLink: String = configuration.getString("s3index.view.contactBrandLink").getOrElse("http://code.google.com/p/s3index/")
   lazy val yearUpdated: String = configuration.getString("s3index.view.yearUpdated").getOrElse("2012")
+  lazy val apiCacheExpirationPeriodSec: Int = configuration.getInt("s3index.api.cache.expiration.period.sec").getOrElse(1 * 60)
 
 }

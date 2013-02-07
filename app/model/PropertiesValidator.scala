@@ -7,7 +7,6 @@ import scala.util.matching.Regex
 class PropertiesValidator(rules: Seq[JsValue => Seq[Option[(String, String)]]] = Seq.empty)  {
 
   private def validateWith(key: String, rule: String => Option[(String, String)])(properties: JsValue): Seq[Option[(String, String)]] = {
-    println("validating -> " + key)
     (properties \ key).asOpt[Array[String]] match {
       case None => (properties \ key).asOpt[String] match {
         case None => Seq(None)

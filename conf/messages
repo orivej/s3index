@@ -1,0 +1,47 @@
+general.properties.page.bucket.label=Specify your bucket.
+general.properties.page.bucket.label.help=This parameter is <strong>mandatory</strong>.<br/>\
+  Bucket names must be at least 3 and no more than 63 characters long.\
+  Bucket name must be a series of one or more labels separated by a period (.) and can contain lowercase letters, numbers and dashes.<br/>\
+  This service assumes that Amazon`s <i>All Users group</i> has <i>READ</i> access to your bucket.\
+  Please use <i>Check</i> button to verify that we can list objects in your bucket before going to the next page.
+general.properties.page.exclude.keys.label=List of keys to exclude.
+general.properties.page.exclude.keys.label.help=Use this parameter if you want to exclude certain files and directories from index.\
+  Here you can specify a simple pattern syntax for matching files:\
+  <ul>\
+    <li>* matches zero or more characters</li>\
+    <li>? matches one character</li>\
+  </ul>\
+  Combinations of *'s and ?'s are allowed. When used in conjunction with <i>List of keys to include</i> patterns, only files/directories that match\
+  at least one of the include patterns and don't match any of the exclude patterns are used.<br/>\
+  Examples:<br/>\
+  <ul>\
+    <li><i>**/*.jpeg</i> - matches <i>a.jpeg</i>, <i>photos/a.jpeg</i>, <i>photos/summer/b.jpeg</i></li>\
+    <li><i>?.txt</i> - matches <i>x.txt</i>, <i>A.txt</i>, but not <i>.txt</i> or <i>xyz.txt</i></li>\
+  </ul>
+general.properties.page.include.keys.label=List of keys to include.
+general.properties.page.include.keys.label.help=Use this parameter if you want to include certain files and directories to index.\
+  Here you can specify a simple pattern syntax for matching files:\
+  <ul>\
+    <li>* matches zero or more characters</li>\
+    <li>? matches one character</li>\
+  </ul>\
+  Combinations of *'s and ?'s are allowed. When used in conjunction with <i>List of keys to exclude</i> patterns, only files/directories that match\
+  at least one of the include patterns and don't match any of the exclude patterns are used.<br/>\
+  Examples:<br/>\
+  <ul>\
+    <li><i>**/*.jpeg</i> - matches <i>a.jpeg</i>, <i>photos/a.jpeg</i>, <i>photos/summer/b.jpeg</i></li>\
+    <li><i>?.txt</i> - matches <i>x.txt</i>, <i>A.txt</i>, but not <i>.txt</i> or <i>xyz.txt</i></li>\
+  </ul>
+general.properties.page.next.button.name=Next
+general.properties.page.done.button.name=Done
+  
+menu.about.us=About Us
+menu.contact.us=Contact Us
+
+left.column.text=<p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>\
+  <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing.\
+  Generated HTML could be customized at the second page of this wizard.</p>
+  
+wizard.general.properties.page.link.name=Specify Your Bucket
+wizard.view.properties.page.link.name=Select Template
+wizard.final.page.link.name=Get Your Code

@@ -33,33 +33,6 @@ object Utils {
     }).toString.r
   }
   
-  def copyStyleTo(stylesDirectory: URL, styleId: String, to: (String, Array[Byte]) => Unit, excludeFiles: Seq[Regex] = List()) {
-//    def recursiveListFiles(f: File, filter: (File) => Boolean = (f) => true): Array[File] = {
-//      val list = f.listFiles
-//      list.filter((f) => !f.isDirectory && filter(f)) ++ list.filter(_.isDirectory).flatMap(recursiveListFiles(_, filter))
-//    }
-    val styleZip = new ZipInputStream(getClass.getResourceAsStream("/styles" + File.separator + styleId + ".zip"));
-    var entry: ZipEntry = styleZip.getNextEntry()
-	while (entry != null)
-        {
-            System.out.println("entry: " + entry.getName() + ", " + entry.getSize());
-            val data = IOUtils.toByteArray(styleZip)
-            to(entry.getName(), data)
-            entry = styleZip.getNextEntry()
-        }
-//    val styleFolderLocation = new File(stylesDirectory.getFile(), styleId)
-//    if (styleFolderLocation.isDirectory()) {
-//        val styleLocation = styleFolderLocation.getPath()
-//        for (styleResource <- (recursiveListFiles(new File(styleFolderLocation.toURI()), (f) => !f.getPath().endsWith("preview.gif")))) yield {
-//          val data = FileUtils.readFileToByteArray(styleResource)
-//          val key = styleResource.getPath().substring(styleLocation.length() + 1)
-//          to(key, data)
-//        }
-//      } else {
-//        throw new IOException("Could not find style %s in classpath".format(styleId))
-//    }
-  }
-  
   implicit def StringToURL(location: String): URL = {
     val classpathURL = """classpath[:][/]?[/]?(.+)""".r
     val result = location match {

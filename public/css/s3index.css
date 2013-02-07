@@ -91,9 +91,9 @@ select {
 	margin-bottom: 0px;
 }
 
-.progress {
-	margin-bottom: 0px;
-	margin-top: 0px;
+.popover-title {
+	height: 0px;
+	display: none;
 }
 
 footer {
@@ -107,16 +107,20 @@ footer {
 
 .preview-box {
 	border-width: 1px;
-  border-style: solid;
-  border-color: lightgray;
-  text-align: center;
-  padding: 2px;
-  font-weight: bold;
-  max-height: 200px;
-  max-width: 300px;
+	border-style: solid;
+	border-color: lightgray;
+	text-align: center;
+	padding: 2px;
+	font-weight: bold;
+	max-height: 200px;
+	max-width: 300px;
 }
 
 .preview-box img {
 	max-height: 195px;
-  max-width: 290px;
+	max-width: 290px;
+}
+
+.s3index-help{
+	float: right;
 }

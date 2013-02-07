@@ -43,20 +43,20 @@ var S3Index = {
   },
   
   init: function(properties){
-   if (!("onhashchange" in window) || S3Index.ie || S3Index.ie < 8)  {
+   if (!("onhashchange" in window) || S3Index.ie() || S3Index.ie < 8)  {
         var prevHash = window.location.hash;
         var oldHref = location.href;
         window.setInterval(function() {
             var newHref = location.href;
             if (oldHref !== newHref) {
                 oldHref = newHref;
-                S3Index.load();
+                S3Index.load(properties);
             }
         }, 100);
     } else if (window.addEventListener) {
-      window.addEventListener("hashchange", S3Index.load(properties), false);
+      window.addEventListener("hashchange", function(){S3Index.load(properties)}, false);
     } else if (window.attachEvent) {
-      window.attachEvent("onhashchange", S3Index.load(properties));    
+      window.attachEvent("onhashchange", function(){S3Index.load(properties)});    
     }
     S3Index.load(properties)
   },

@@ -1,5 +1,7 @@
 @(applicationSettings: model.ApplicationSettings)(head: Html)(body: Html)(footer: Html)
 
+@import play.api.i18n.Messages
+
 <!DOCTYPE html>
 
 <html>
@@ -24,8 +26,8 @@
 				 <a class="brand" href="@applicationSettings.brandLink"><img src="@routes.Assets.at("img/logo-20x20.png")"/> @applicationSettings.applicationName</a>
 				 
 				 <ul class="nav">
-					 <li><a href="@applicationSettings.aboutBrandLink">About Us</a></li>
-					 <li><a href="@applicationSettings.contactBrandLink">Contact Us</a></li>
+					 <li><a href="@applicationSettings.aboutBrandLink">@Messages("menu.about.us")</a></li>
+					 <li><a href="@applicationSettings.contactBrandLink">@Messages("menu.contact.us")</a></li>
 				 </ul>
 				
 				 <!-- Likes -->

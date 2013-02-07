@@ -34,6 +34,7 @@ import com.codeminders.scalaws.AmazonClientException
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor
 import com.yahoo.platform.yui.compressor.YUICompressor
 import com.googlecode.htmlcompressor.compressor.ClosureJavaScriptCompressor
+import play.api.i18n.Messages
 
 object Application extends Controller {
 
@@ -55,7 +56,7 @@ object Application extends Controller {
 
   private val propertiesValidator = new PropertiesValidator().
     isLengthInRange("bucketName", 3 to 63).
-    matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-]*""", "The value of this parameter should conform with DNS requirements.").
+    matches("bucketName", """[a-zA-Z].[a-zA-Z0-9\-\.]*""", "The value of this parameter should conform with DNS requirements.").
     isNumber("maxKeys").
     isNumberInRange("maxKeys", 1 to 2000000000).
     isLengthInRange("excludeKey", 1 to 1024).
@@ -63,8 +64,7 @@ object Application extends Controller {
     oneOf("template", Template.values.foldLeft(List[String]())((l, v) => v.toString() :: l)).
     oneOf("filesformat", FilesListFormat.values.foldLeft(List[String]())((l, v) => v.toString() :: l))
 
-  //  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
-  private val compressedAPI1 = views.html.api1(globals.settings.backreferenceUrl.toString()).body
+  private val compressedAPI1 = javascriptCompressor.compress(views.html.api1(globals.settings.backreferenceUrl.toString()).body)
 
   def index = Action {
     Redirect(routes.Application.generalPropertiesPage)
@@ -135,7 +135,7 @@ object Application extends Controller {
         })
         propertiesValidator.validate(json)
         val properties = Properties(json)
-        Ok(Cache.getOrElse[Html]("%s.%s.%s".format(properties.toId, prefix, marker)) {
+        Ok(Cache.getOrElse[Html]("%s.%s.%s".format(properties.toId, prefix, marker), globals.settings.apiCacheExpirationPeriodSec) {
           Html("""var data = {"html": "%s"}; %s(data);""".format(StringEscapeUtils.escapeJavaScript(
             try {
               Logger.debug("Cache miss, properties -> " + properties)
@@ -184,8 +184,8 @@ object Application extends Controller {
         s3Client(properties.bucketName).list("", "", 1, "").take(1) // ensure that service can access specified bucket
         Ok(Json.toJson(""))
       } catch {
-        case e: AmazonServiceException => Ok(Json.toJson(Map("bucketName" -> "Please make sure that the name of the bucket is correct: %s".format(Json.toJson(e.message)))))
-        case e: AmazonClientException => Ok(Json.toJson(Map("bucketName" -> "Please make sure that the name of the bucket is correct: %s".format(Json.toJson(e.getMessage())))))
+        case e: AmazonServiceException => BadRequest(Json.toJson(Map("bucketName" -> "Could not list objects in this bucket, %s".format(Json.toJson(e.message)))))
+        case e: AmazonClientException => BadRequest(Json.toJson(Map("bucketName" -> "Could not list objects in this bucket, %s".format(Json.toJson(e.getMessage())))))
         case e: PropertiesValidationError => BadRequest(e.errors)
       }
   }

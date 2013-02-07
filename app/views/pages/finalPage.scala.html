@@ -1,16 +1,16 @@
 @(applicationSettings: model.ApplicationSettings)(properties: String)
 
+@import play.api.i18n.Messages
+
 @main(applicationSettings) {
 } {
   @content{
-    <p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
-    <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML
-    could be customized at the second page of this wizard.</p>
+    @Html(Messages("left.column.text"))
   } {
 		<div class="wizard">
-			<a href="@routes.Application.generalPropertiesPage"><span class="badge">1</span> Specify Your Bucket</a>
-			<a href="@routes.Application.viewPropertiesPage"><span class="badge">2</span> Select Template</a>
-			<a href="#" class="current"><span	class="badge badge-inverse">3</span> Get Your Code</a>
+			<a href="@routes.Application.generalPropertiesPage"><span class="badge">1</span> @Messages("wizard.general.properties.page.link.name")</a>
+			<a href="@routes.Application.viewPropertiesPage"><span class="badge">2</span> @Messages("wizard.view.properties.page.link.name")</a>
+			<a href="#" class="current"><span	class="badge badge-inverse">3</span> @Messages("wizard.final.page.link.name")</a>
 		</div>
   } {
 		<div class="row-fluid">
@@ -24,9 +24,9 @@
 			<i id="messageIcon" class="icon-info-sign"></i>
 			<strong>Your Code:</strong> <br/>
 				  Include the JavaScript SDK on your page once, ideally right after the opening &lt;body&gt; tag.
-				<pre>&lt;div&nbsp;id=&quot;s3index-root&quot;&gt;&lt;/div&gt;</pre>
-				  Place the code for your index wherever you want the index to appear on your page.
 				<pre><code>&lt;script&nbsp;src=&quot;@applicationSettings.backreferenceUrl.toString()/api1&quot;&nbsp;type=&quot;text/javascript&quot;&gt;&lt;/script&gt;&lt;script&gt;(function()&nbsp;{S3Index.init(@properties)}());&lt;/script&gt;</code></pre>
+				  Place the code for your index wherever you want the index to appear on your page.
+				<pre><code>&lt;div&nbsp;id=&quot;s3index-root&quot;&gt;&lt;/div&gt;</code></pre>
 			</div>
 		</div>
   }

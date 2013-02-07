@@ -1,5 +1,7 @@
 @(applicationSettings: model.ApplicationSettings)(templates: Seq[String], filesFormats: Seq[String])
 
+@import play.api.i18n.Messages
+
 @main(applicationSettings) {
 <style type="text/css">
 #s3index-root a {
@@ -9,14 +11,12 @@
 </style>
 } {
 @content{
-		<p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
-		<p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML could
-			be customized at the second page of this wizard.</p>
+		@Html(Messages("left.column.text"))
   } {
 		<div class="wizard">
-			<a href="#" id="propertiesPageLink"><span class="badge">1</span> Specify Your Bucket</a>
-			<a href="#" class="current"><span class="badge badge-inverse">2</span> Select Template</a>
-			<a href="#" id="finalPageLink"><span class="badge">3</span> Get Your Code</a>
+			<a href="#" id="propertiesPageLink"><span class="badge">1</span> @Messages("wizard.general.properties.page.link.name")</a>
+			<a href="#" class="current"><span class="badge badge-inverse">2</span> @Messages("wizard.view.properties.page.link.name")</a>
+			<a href="#" id="finalPageLink"><span class="badge">3</span> @Messages("wizard.final.page.link.name")</a>
 		</div>
   } {
 		<form id="form">

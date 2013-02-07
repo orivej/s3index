@@ -1,32 +1,40 @@
-@(applicationSettings: model.ApplicationSettings) 
+@(applicationSettings: model.ApplicationSettings)
+
+@import play.api.i18n.Messages 
 
 @main(applicationSettings){
 } {
   @content{
-    <p>Amazon S3 could be used to share files. However it lack directory listing capability.</p>
-    <p>This small service connects to given S3 bucket and recursively generates index.html files in all sub-folders to allow easy browsing. Generated HTML
-    could be customized at the second page of this wizard.</p>
+    @Html(Messages("left.column.text"))
   } {
     <div class="wizard">
-      <a href="#" class="current"><span class="badge badge-inverse">1</span> Specify Your Bucket</a> 
-      <a href="#" id="templatePageLink"><span class="badge">2</span> Select Template</a>
-      <a href="#" id="finalPageLink"><span class="badge">3</span> Get Your Code</a>
+      <a href="#" class="current"><span class="badge badge-inverse">1</span> @Messages("wizard.general.properties.page.link.name")</a> 
+      <a href="#" id="templatePageLink"><span class="badge">2</span> @Messages("wizard.view.properties.page.link.name")</a>
+      <a href="#" id="finalPageLink"><span class="badge">3</span> @Messages("wizard.final.page.link.name")</a>
     </div>
   } {
 		<form id="form">
 			<fieldset>
 				<legend>General Properties</legend>
 				<!-- Bucket Name -->
-				<label>Specify a name of your bucket. This parameter is mandatory</label>
+				<label>@Messages("general.properties.page.bucket.label")
+				  <a href="#" class="s3index-help" rel="popover" data-placement="bottom" data-content="@Messages("general.properties.page.bucket.label.help")">
+				    <i class="icon-question-sign"></i>
+				  </a>
+				</label>
 				<div class="control-group">
-				  <div class="input-append control-group">
-					<input type="text" name="bucketName" class="input-large form-error" placeholder="mybucket">
-					<button class="btn" id="validateBucket" type="button">Validate</button>
+				  <div class="input-append">
+						<input type="text" name="bucketName" class="input-large form-error" placeholder="mybucket">
+						<a href="#" id="validateBucket" class="add-on"> Check</a>
 					</div>
 				</div>
 				<hr />
 				<!-- Exclude Keys -->
-				<label>List of keys to exclude</label>
+				<label>@Messages("general.properties.page.exclude.keys.label")
+				  <a href="#" class="s3index-help" rel="popover" data-placement="bottom" data-content="@Messages("general.properties.page.exclude.keys.label.help")">
+            <i class="icon-question-sign"></i>
+          </a>
+				</label>
 				<div class="control-group">
 					<div class="clonable">
 						<div class="input-append control-group">
@@ -38,7 +46,11 @@
 				</div>				
 				<hr />
 				<!-- Include Key -->
-				<label>List of keys to include</label>
+				<label>@Messages("general.properties.page.include.keys.label")
+          <a href="#" class="s3index-help" rel="popover" data-placement="bottom" data-content="@Html(Messages("general.properties.page.include.keys.label.help"))">
+            <i class="icon-question-sign"></i>
+          </a>
+        </label>
 				<div class="control-group">
 					<div class="clonable">
 						<div class="input-append control-group">
@@ -50,9 +62,9 @@
 				</div>
 				<hr />
 				<!-- Next -->
-				<button id="next" type="submit" class="btn btn-large btn-primary">Next <i class="icon-chevron-right icon-white"></i></button>
+				<button id="next" type="submit" class="btn btn-large btn-primary">@Messages("general.properties.page.next.button.name") <i class="icon-chevron-right icon-white"></i></button>
 				<!-- Go -->
-				<a class="btn btn-large" href="#" id="done">Done <i class="icon-ok"></i></a>
+				<a class="btn btn-large" href="#" id="done">@Messages("general.properties.page.done.button.name") <i class="icon-ok"></i></a>
 			</fieldset>
 		</form>
 		
@@ -67,7 +79,10 @@
       $('#done').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
       $('#templatePageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.viewPropertiesPage'})})
       $('#finalPageLink').click(function() {postProperties('@routes.Application.properties', function() {window.location.href = '@routes.Application.finalPage'})})
-      $('#validateBucket').click(function() {postProperties('@routes.Application.validateProperties')})
+      $('#validateBucket').click(function() {postProperties('@routes.Application.validateProperties', validateBucketSuccessHandler, postPropertiesErrorHandler)})
+      $('.s3index-help').each(function(index) {
+        $(this).popover({ html : true });
+      });
       $("input[type='text']:first", document.forms[0]).focus(); 
     });
 
@@ -81,6 +96,15 @@
         $('#excludeKeyAddButton').trigger('click');
         $('#excludeKey' + i).val(properties.excludeKey[i]);
       }
+    }
+    
+    function validateBucketSuccessHandler(json){
+      if(json){
+        $('.control-group').has('#validateBucket').addClass('info')
+        $('.control-group').has('#validateBucket').append('<span class="s3index-error-msg help-inline">Bucket name is correct.</span>');
+      }
+      else parseBadRequestWarnings(json)
+      
     }
     </script>
 }
